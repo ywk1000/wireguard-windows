@@ -11,7 +11,7 @@ import (
 	"reflect"
 )
 
-import _ "gopkg.in/Knetic/govaluate.v3"
+import _ "git.zx2c4.com/wireguard-windows/wireguard-manager/walk/govaluate"
 
 type Expression interface {
 	Value() interface{}

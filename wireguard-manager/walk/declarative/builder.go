@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
-	"gopkg.in/Knetic/govaluate.v3"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/govaluate"
 )
 
 var (
