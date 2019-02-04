@@ -1,0 +1,7 @@
+[submodule "wireguard-go"]
+	path = wireguard-go
+	url = https://git.zx2c4.com/wireguard-go
+	branch = sr/wintun
+[submodule "wintun"]
+	path = wintun
+	url = git@git.zx2c4.com:wintun

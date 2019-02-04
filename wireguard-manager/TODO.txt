@@ -1,0 +1,4 @@
+- No default font is set, so the cursor changes size only after the initial
+  character has been set.
+- The colors are currently pretty disgusting.
+- With HiDPI, the text is extremely blurry: https://github.com/lxn/walk/pull/451
