@@ -6,7 +6,7 @@
 
 package declarative
 
-import "github.com/lxn/walk"
+import "git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
 
 type MainWindow struct {
 	// Window

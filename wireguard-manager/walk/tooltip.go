@@ -12,7 +12,7 @@ import (
 )
 
 import (
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 // see https://msdn.microsoft.com/en-us/library/windows/desktop/bb760416(v=vs.85).aspx

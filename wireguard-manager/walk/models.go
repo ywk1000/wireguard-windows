@@ -6,7 +6,7 @@
 
 package walk
 
-import "github.com/lxn/win"
+import "git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 
 // BindingValueProvider is the interface that a model must implement to support
 // data binding with widgets like ComboBox.

@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 const tabWidgetWindowClass = `\o/ Walk_TabWidget_Class \o/`

@@ -16,7 +16,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/lxn/walk"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
 	"gopkg.in/Knetic/govaluate.v3"
 )
 

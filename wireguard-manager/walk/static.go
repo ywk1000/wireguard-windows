@@ -9,7 +9,7 @@ package walk
 import (
 	"syscall"
 
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 const staticWindowClass = `\o/ Walk_Static_Class \o/`

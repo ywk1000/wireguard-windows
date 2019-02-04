@@ -13,7 +13,7 @@ import (
 	"unsafe"
 )
 
-import "github.com/lxn/win"
+import "git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 
 type DateEdit struct {
 	WidgetBase

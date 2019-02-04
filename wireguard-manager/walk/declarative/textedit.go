@@ -7,8 +7,8 @@
 package declarative
 
 import (
-	"github.com/lxn/walk"
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 type TextEdit struct {

@@ -13,7 +13,7 @@ import (
 )
 
 import (
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 const webViewWindowClass = `\o/ Walk_WebView_Class \o/`

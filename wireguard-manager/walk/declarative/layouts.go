@@ -9,7 +9,7 @@ package declarative
 import (
 	"errors"
 
-	"github.com/lxn/walk"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
 )
 
 type Orientation byte

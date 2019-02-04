@@ -9,7 +9,7 @@ package walk
 import (
 	"unsafe"
 
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 const scrollViewWindowClass = `\o/ Walk_ScrollView_Class \o/`

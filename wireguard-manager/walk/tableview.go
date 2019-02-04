@@ -15,7 +15,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 const tableViewWindowClass = `\o/ Walk_TableView_Class \o/`

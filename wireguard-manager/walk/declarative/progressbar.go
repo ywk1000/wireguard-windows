@@ -7,7 +7,7 @@
 package declarative
 
 import (
-	"github.com/lxn/walk"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
 )
 
 type ProgressBar struct {

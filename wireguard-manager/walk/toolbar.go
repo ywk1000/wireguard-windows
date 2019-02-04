@@ -13,7 +13,7 @@ import (
 )
 
 import (
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 type ToolBarButtonStyle int
