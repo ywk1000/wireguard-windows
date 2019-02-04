@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/lxn/walk"
-	"github.com/lxn/walk/declarative"
-	"github.com/lxn/win"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/declarative"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk/win"
 )
 
 // #include "syntaxedit.h"

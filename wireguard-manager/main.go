@@ -7,8 +7,8 @@ package main
 
 import (
 	"encoding/base64"
-	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
+	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
+	. "git.zx2c4.com/wireguard-windows/wireguard-manager/walk/declarative"
 	"golang.org/x/crypto/curve25519"
 	"log"
 )
