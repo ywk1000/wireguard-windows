@@ -10,17 +10,12 @@ import (
 	"git.zx2c4.com/wireguard-windows/wireguard-manager/walk"
 	. "git.zx2c4.com/wireguard-windows/wireguard-manager/walk/declarative"
 	"golang.org/x/crypto/curve25519"
-	"log"
 )
 
 func ShowMainWindow() {
 	var se *SyntaxEdit
 	var tl *walk.TextLabel
 	lastPrivate := ""
-	icon, err := walk.Resources.Icon("./icon/icon.ico")
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	demo_config := `[Interface]
 PrivateKey = cJM9wXUVXc0fa/t5b/Lm0BHNx6jh5UiTLsO+oJhyQUU=
@@ -42,7 +37,6 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 
 	MainWindow{
 		Title:   "WireGuard for Windows",
-		Icon:    icon,
 		MinSize: Size{600, 400},
 		Layout:  VBox{},
 		Children: []Widget{

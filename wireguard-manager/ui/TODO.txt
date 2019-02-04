@@ -1,3 +1,4 @@
 - No default font is set, so the cursor changes size only after the initial
   character has been set.
 - The colors are currently pretty disgusting.
+- Add icon of exe to icon of mainwindow.
