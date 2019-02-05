@@ -37,7 +37,7 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 
 	MainWindow{
 		Title:   "WireGuard for Windows",
-		MinSize: Size{600, 400},
+		MinSize: Size{900, 800},
 		Layout:  VBox{},
 		Children: []Widget{
 			TextLabel{
