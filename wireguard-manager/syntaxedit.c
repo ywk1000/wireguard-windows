@@ -141,7 +141,7 @@ static void context_menu(HWND hWnd, INT x, INT y)
 		.codepage = CP_ACP
 	};
 	/* This disturbing hack grabs the system edit menu normally used for the EDIT control. */
-	HMENU popup, menu = LoadMenuW(GetModuleHandleW(L"comctl32.dll"), (LPCWSTR)1);
+	HMENU popup, menu = LoadMenuW(GetModuleHandleW(L"comctl32.dll"), MAKEINTRESOURCEW(1));
 	CHARRANGE selection = { 0 };
 	bool has_selection, can_selectall, can_undo, can_paste;
 	UINT cmd;
