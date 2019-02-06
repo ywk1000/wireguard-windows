@@ -6,7 +6,7 @@ export CC := x86_64-w64-mingw32-gcc
 export GOOS := windows
 export PATH := $(PATH):$(GOPATH)/bin
 
-wireguard-manager.exe: $(wildcard *.go ui/*.go ui/*.c ui/*.h) resources.syso
+wireguard-manager.exe: $(wildcard *.go *.c *.h) resources.syso
 	go build -ldflags="-H windowsgui" -v
 
 resources.syso: icon/icon.ico wireguard-manager.exe.manifest
