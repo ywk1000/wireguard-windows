@@ -7,7 +7,7 @@ export GOOS := windows
 export GOARCH := amd64
 export PATH := $(PATH):$(GOPATH)/bin
 
-wireguard-manager.exe: $(wildcard *.go *.c *.h) resources.syso
+wireguard-manager.exe: $(wildcard *.go *.c *.h */*.go) resources.syso
 	go build -ldflags="-H windowsgui" -o $@ -v
 
 resources.syso: icon/icon.ico wireguard-manager.exe.manifest
