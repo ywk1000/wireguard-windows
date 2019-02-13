@@ -6,6 +6,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"git.zx2c4.com/wireguard-windows/manager/conf"
@@ -21,9 +22,91 @@ type MainWindowModel struct {
 	refreshtimer *time.Timer
 }
 
+var wgicon *walk.Icon
+
 func main() {
 
+	mw, err := walk.NewMainWindow() //just for the tray icon msg loop, never shown
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	wgicon, err = walk.NewIconFromResourceId(8) //TODO: will this stay at id=8??
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ni, err := walk.NewNotifyIcon()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ni.Dispose()
+
+	if err := ni.SetIcon(wgicon); err != nil {
+		log.Fatal(err)
+	}
+	if err := ni.SetToolTip("WireGuard"); err != nil {
+		log.Fatal(err)
+	}
+
+	menus := []MenuItem{
+		Action{
+			Text: "Manage tunnels",
+			OnTriggered: func() {
+				runManagerWindow() //todo:check if this needs go routine, also prevent running twice
+			},
+		},
+		Action{
+			Text: "Import tunnel(s) from file...",
+			OnTriggered: func() {
+
+			},
+		},
+		Separator{},
+		Action{
+			Text: "About WireGuard",
+			OnTriggered: func() {
+
+			},
+		},
+		Action{
+			Text:        "Quit",
+			OnTriggered: func() { walk.App().Exit(0) },
+		},
+	}
+	addMenus(ni, menus)
+
+	if err := ni.SetVisible(true); err != nil {
+		log.Fatal(err)
+	}
+	mw.Run()
+
+}
+
+func addMenus(ni *walk.NotifyIcon, menus []MenuItem) error {
+	for _, mi := range menus {
+		var action *walk.Action
+		switch mi.(type) {
+		case Action:
+			action = walk.NewAction()
+			if err := action.SetText(mi.(Action).Text); err != nil {
+				return err
+			}
+			action.Triggered().Attach(mi.(Action).OnTriggered)
+		case Separator:
+			action = walk.NewSeparatorAction()
+		}
+		if err := ni.ContextMenu().Actions().Add(action); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func runManagerWindow() {
+
 	mw := &MainWindowModel{model: &InterfacesModel{}}
+
 	demo_config := `[Interface]
 PrivateKey = cJM9wXUVXc0fa/t5b/Lm0BHNx6jh5UiTLsO+oJhyQUU=
 Address = 192.168.4.84/24, 2001:abcd:33::/120 # this is a comment
@@ -47,8 +130,8 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 		AssignTo: &mw.MainWindow,
 		Title:    "WireGuard for Windows",
 		MinSize:  Size{650, 350},
-		Icon:     "icon/icon.ico",
-		Layout:   HBox{},
+		Icon:/*icon,*/ "icon/icon.ico",
+		Layout: HBox{},
 		Children: []Widget{
 			Composite{
 				Layout:   VBox{MarginsZero: true, SpacingZero: true},
