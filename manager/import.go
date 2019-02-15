@@ -17,7 +17,7 @@ func (mw *MainWindowModel) importTunnels() error {
 	dlg.Filter = "WireGuard tunnel files (*.zip;*.conf)|*.zip;*.conf"
 	dlg.Title = "Import tunnel file..."
 
-	if ok, err := dlg.ShowOpen(mw); err != nil || !ok {
+	if ok, err := dlg.ShowOpen(mw.MainWindow); err != nil || !ok {
 		return err
 	}
 	ext := filepath.Ext(dlg.FilePath)

@@ -124,5 +124,5 @@ func (mw *MainWindowModel) runEditDialog() (int, error) {
 				},
 			},
 		},
-	}.Run(mw)
+	}.Run(mw.MainWindow)
 }

@@ -14,14 +14,14 @@ import (
 
 func (mw *MainWindowModel) exportCurrentTunnel() error {
 	if mw.model.Current == nil {
-		walk.MsgBox(mw, "No tunnel selected", "You need to select a tunnel first", walk.MsgBoxIconInformation)
+		walk.MsgBox(mw.MainWindow, "No tunnel selected", "You need to select a tunnel first", walk.MsgBoxIconInformation)
 		return nil
 	}
 	dlg := new(walk.FileDialog)
 	dlg.Filter = "WireGuard tunnel file (*.conf)|*.conf"
 	dlg.Title = "Save to..."
 	dlg.FilePath = mw.model.Current.Name + ".conf"
-	if ok, err := dlg.ShowSave(mw); err != nil || !ok {
+	if ok, err := dlg.ShowSave(mw.MainWindow); err != nil || !ok {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (mw *MainWindowModel) exportTunnels() error {
 	dlg.Filter = "WireGuard tunnels (*.zip)|*.zip"
 	dlg.Title = "Save to..."
 
-	if ok, err := dlg.ShowSave(mw); err != nil || !ok {
+	if ok, err := dlg.ShowSave(mw.MainWindow); err != nil || !ok {
 		return err
 	}
 
@@ -86,7 +86,7 @@ func (mw *MainWindowModel) exportLog() {
 	dlg.Filter = "Log files (*.log)|*.log"
 	dlg.Title = "Save to..."
 
-	if ok, err := dlg.ShowSave(mw); err != nil {
+	if ok, err := dlg.ShowSave(mw.MainWindow); err != nil {
 		log.Print(err)
 	} else if !ok {
 		return

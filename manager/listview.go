@@ -46,7 +46,7 @@ func (mw *MainWindowModel) listView() []Widget {
 									Text: "Import tunnel(s) from file...",
 									OnTriggered: func() {
 										if err := mw.importTunnels(); err != nil {
-											walk.MsgBox(mw, err.Error(), "Error", walk.MsgBoxIconError)
+											walk.MsgBox(mw.MainWindow, err.Error(), "Error", walk.MsgBoxIconError)
 										}
 									},
 								},
@@ -67,7 +67,7 @@ func (mw *MainWindowModel) listView() []Widget {
 									Text: "Export tunnels to zip...",
 									OnTriggered: func() {
 										if err := mw.exportTunnels(); err != nil {
-											walk.MsgBox(mw, err.Error(), "Error", walk.MsgBoxIconError)
+											walk.MsgBox(mw.MainWindow, err.Error(), "Error", walk.MsgBoxIconError)
 										}
 									},
 								},
@@ -75,7 +75,7 @@ func (mw *MainWindowModel) listView() []Widget {
 									Text: "Export selected tunnel...",
 									OnTriggered: func() {
 										if err := mw.exportCurrentTunnel(); err != nil {
-											walk.MsgBox(mw, err.Error(), "Error", walk.MsgBoxIconError)
+											walk.MsgBox(mw.MainWindow, err.Error(), "Error", walk.MsgBoxIconError)
 										}
 									},
 								},
@@ -113,7 +113,7 @@ func (mw *MainWindowModel) currentIndexChanged() {
 
 func (mw *MainWindowModel) removeTunnel() {
 	if i := mw.lb.CurrentIndex(); i >= 0 &&
-		walk.MsgBox(mw,
+		walk.MsgBox(mw.MainWindow,
 			"Confirm deletion",
 			"Are you sure you want to remove this interface?",
 			walk.MsgBoxYesNo|walk.MsgBoxIconQuestion) == walk.DlgCmdYes {
