@@ -17,10 +17,14 @@ func (mw *MainWindowModel) detailView() []Widget {
 		Composite{
 			Layout: HBox{},
 			Children: []Widget{
+
 				HSpacer{},
 				PushButton{
 					Text: "Edit",
 					OnClicked: func() {
+						if mw.model.Current == nil {
+							return
+						}
 						if ok, err := mw.runEditDialog(); err == nil && ok == walk.DlgCmdOK {
 							mw.pv.SetConfiguration(mw.model.Current)
 							mw.model.items[mw.lb.CurrentIndex()] = mw.model.Current
@@ -42,7 +46,7 @@ func (mw *MainWindowModel) runEditDialog() (int, error) {
 	lastPrivate := ""
 	return Dialog{
 		AssignTo: &dlg,
-		Icon:     "icon/icon.ico",
+		Icon:     wgicon,
 		Title:    "Edit Tunnel",
 		Layout:   Grid{Columns: 2},
 		MinSize:  Size{500, 400},

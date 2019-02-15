@@ -73,6 +73,15 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 
 	menus := []MenuItem{
 		Action{
+			Text:    "Status: Inactive",
+			Enabled: false,
+		},
+		Action{
+			Text:    "Networks: 0.0.0.0/0",
+			Enabled: false,
+		},
+		Separator{},
+		Action{
 			Text: "Manage tunnels",
 			OnTriggered: func() {
 				mwm.runManagerWindow()
@@ -88,12 +97,17 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 		Action{
 			Text: "About WireGuard",
 			OnTriggered: func() {
-
+				runAboutWindow(mw)
 			},
 		},
 		Action{
-			Text:        "Quit",
-			OnTriggered: func() { walk.App().Exit(0) },
+			Text: "Quit",
+			OnTriggered: func() {
+				if mwm.MainWindow != nil {
+					//todo: close window/dialogs
+				}
+				walk.App().Exit(0)
+			},
 		},
 	}
 	addMenus(ni, menus)
@@ -113,6 +127,9 @@ func addMenus(ni *walk.NotifyIcon, menus []MenuItem) error {
 			action = walk.NewAction()
 			if err := action.SetText(mi.(Action).Text); err != nil {
 				return err
+			}
+			if mi.(Action).Enabled != nil {
+				action.SetEnabled(mi.(Action).Enabled.(bool))
 			}
 			action.Triggered().Attach(mi.(Action).OnTriggered)
 		case Separator:
@@ -134,8 +151,8 @@ func (mw *MainWindowModel) runManagerWindow() {
 		AssignTo: &mw.MainWindow,
 		Title:    "WireGuard for Windows",
 		MinSize:  Size{650, 350},
-		Icon:/*icon,*/ "icon/icon.ico",
-		Layout: HBox{},
+		Icon:     wgicon,
+		Layout:   HBox{},
 		Children: []Widget{
 			Composite{
 				Layout:   VBox{MarginsZero: true, SpacingZero: true},
@@ -149,4 +166,34 @@ func (mw *MainWindowModel) runManagerWindow() {
 		},
 	}.Run()
 	mw.MainWindow = nil
+}
+
+func runAboutWindow(owner *walk.MainWindow) {
+
+	Dialog{
+		Size:      Size{300, 300},
+		FixedSize: true,
+		Icon:      wgicon,
+		Layout:    VBox{},
+		Children: []Widget{
+			ImageView{
+				Image:  "icon/128.png",
+				Margin: 10,
+				Mode:   ImageViewModeIdeal,
+			},
+			TextLabel{
+				Text: "WireGuard",
+				Font: Font{
+					Family:    "MS Shell Dlg 2",
+					PointSize: 14,
+					Bold:      true,
+				},
+				TextAlignment: AlignHCenterVNear,
+			},
+			TextLabel{
+				Text:          "App version: 12345\nGo backend version: 012345\n\nCopyright© 2018-2019 WireGuard LLC\nAll Rights Reserved",
+				TextAlignment: AlignHCenterVNear,
+			},
+		},
+	}.Run(nil)
 }
