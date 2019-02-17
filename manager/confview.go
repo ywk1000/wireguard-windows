@@ -61,10 +61,10 @@ func (cv *ConfView) SetConfiguration(conf *conf.Config) {
 		return o.String()
 	}
 	field := func(key, value string) {
-		output.WriteString(fmt.Sprintf("{\\b %s:} %s\\par", escape(key), escape(value)))
+		output.WriteString(fmt.Sprintf("\\tab {\\b %s:}\\tab %s\\par", escape(key), escape(value)))
 	}
 
-	output.WriteString("{\\rtf1\\ansi")
+	output.WriteString("{\\rtf1\\ansi \\pard\\tqr\\tx1600\\tx1700\\f0")
 
 	field("Interface", conf.Name)
 	field("Public Key", conf.Interface.PrivateKey.Public().String())
