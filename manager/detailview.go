@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/base64"
 
+	"time"
+
 	"git.zx2c4.com/wireguard-windows/manager/conf"
 	"git.zx2c4.com/wireguard-windows/manager/walk"
 	. "git.zx2c4.com/wireguard-windows/manager/walk/declarative"
@@ -17,7 +19,11 @@ func (mw *MainWindowModel) detailView() []Widget {
 		Composite{
 			Layout: HBox{},
 			Children: []Widget{
-
+				CheckBox{
+					Text:             "Status: deactivated",
+					AssignTo:         &mw.statusCB,
+					OnCheckedChanged: mw.statusCBChecked,
+				},
 				HSpacer{},
 				PushButton{
 					Text: "Edit",
@@ -36,7 +42,23 @@ func (mw *MainWindowModel) detailView() []Widget {
 		},
 	}
 }
+func (mw *MainWindowModel) statusCBChecked() {
+	mw.statusCB.SetEnabled(false)
+	if mw.statusCB.Checked() == true {
+		mw.statusCB.SetText("Status: Activating")
+		time.AfterFunc(time.Second*2, func() {
+			mw.statusCB.SetEnabled(true)
+			mw.statusCB.SetText("Status: Active")
+		})
+	} else {
 
+		mw.statusCB.SetText("Status: Deactivating")
+		time.AfterFunc(time.Second*2, func() {
+			mw.statusCB.SetEnabled(true)
+			mw.statusCB.SetText("Status: Inactive")
+		})
+	}
+}
 func (mw *MainWindowModel) runEditDialog() (int, error) {
 	var dlg *walk.Dialog
 	var se *SyntaxEdit

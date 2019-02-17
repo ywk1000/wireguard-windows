@@ -16,11 +16,14 @@ import (
 )
 
 type MainWindowModel struct {
-	MainWindow   *walk.MainWindow
-	model        *InterfacesModel
-	lb           *walk.ListBox
-	pv           *ConfView
-	refreshtimer *time.Timer
+	MainWindow    *walk.MainWindow
+	model         *InterfacesModel
+	lb            *walk.ListBox
+	pv            *ConfView
+	refreshtimer  *time.Timer
+	statusLabel   *walk.Action
+	networksLabel *walk.Action
+	statusCB      *walk.CheckBox
 }
 
 var wgicon *walk.Icon
@@ -71,7 +74,7 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 		log.Fatal(err)
 	}
 
-	menus := []MenuItem{
+	addMenus(ni, []MenuItem{
 		Action{
 			Text:    "Status: Inactive",
 			Enabled: false,
@@ -80,6 +83,10 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 			Text:    "Networks: 0.0.0.0/0",
 			Enabled: false,
 		},
+		Separator{},
+	})
+	addPeerMenus(ni, mwm)
+	addMenus(ni, []MenuItem{
 		Separator{},
 		Action{
 			Text: "Manage tunnels",
@@ -109,8 +116,7 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 				walk.App().Exit(0)
 			},
 		},
-	}
-	addMenus(ni, menus)
+	})
 
 	if err := ni.SetVisible(true); err != nil {
 		log.Fatal(err)
@@ -119,19 +125,23 @@ AllowedIPs = 192.168.22.0/24, fd00:3001::/64
 
 }
 
+func addPeerMenus(ni *walk.NotifyIcon, mw *MainWindowModel) {
+	for _, peer := range mw.model.items {
+		action := createAction(&Action{
+			Text: peer.Name,
+		})
+		action.SetCheckable(true)
+		if err := ni.ContextMenu().Actions().Add(action); err != nil {
+			return
+		}
+	}
+}
 func addMenus(ni *walk.NotifyIcon, menus []MenuItem) error {
 	for _, mi := range menus {
 		var action *walk.Action
-		switch mi.(type) {
+		switch mit := mi.(type) {
 		case Action:
-			action = walk.NewAction()
-			if err := action.SetText(mi.(Action).Text); err != nil {
-				return err
-			}
-			if mi.(Action).Enabled != nil {
-				action.SetEnabled(mi.(Action).Enabled.(bool))
-			}
-			action.Triggered().Attach(mi.(Action).OnTriggered)
+			action = createAction(&mit)
 		case Separator:
 			action = walk.NewSeparatorAction()
 		}
@@ -141,8 +151,22 @@ func addMenus(ni *walk.NotifyIcon, menus []MenuItem) error {
 	}
 	return nil
 }
-
+func createAction(a *Action) *walk.Action {
+	action := walk.NewAction()
+	if err := action.SetText(a.Text); err != nil {
+		return nil
+	}
+	if a.Enabled != nil {
+		action.SetEnabled(a.Enabled.(bool))
+	}
+	action.Triggered().Attach(a.OnTriggered)
+	if a.AssignTo != nil {
+		*a.AssignTo = action
+	}
+	return action
+}
 func (mw *MainWindowModel) runManagerWindow() {
+	//todo use lock
 	if mw.MainWindow != nil {
 		win.SetForegroundWindow(mw.MainWindow.Handle())
 		return
