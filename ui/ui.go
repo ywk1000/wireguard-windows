@@ -19,17 +19,6 @@ import (
 	"golang.zx2c4.com/wireguard/windows/ui/syntax"
 )
 
-const demoConfig = `[Interface]
-PrivateKey = 6KpcbNFK4tKBciKBT2Rj6Z/sHBqxdV+p+nuNA5AlWGI=
-Address = 192.168.4.84/24
-DNS = 8.8.8.8, 8.8.4.4, 1.1.1.1, 1.0.0.1
-
-[Peer]
-PublicKey = JRI8Xc0zKP9kXk8qP84NdUQA04h6DLfFbwJn4g+/PFs=
-Endpoint = demo.wireguard.com:12912
-AllowedIPs = 0.0.0.0/0
-`
-
 var (
 	mw            *walk.MainWindow
 	tray          *walk.NotifyIcon
@@ -47,7 +36,7 @@ func RunUI() {
 	defer icon.Dispose()
 
 	setupTray()
-	setupTunnelsList()
+	setupTunnelList()
 	bindService()
 
 	mw.Run()
@@ -132,7 +121,7 @@ func onImport() {
 	walk.MsgBox(mw, "Must import", strings.Join(dlg.FilePaths, ", "), walk.MsgBoxOK)
 }
 
-func setupTunnelsList() {
+func setupTunnelList() {
 	mw.SetSize(walk.Size{900, 800})
 	mw.SetLayout(walk.NewHBoxLayout())
 	mw.SetIcon(icon)
@@ -167,9 +156,11 @@ func setupTunnelsList() {
 
 	exportLogAction := walk.NewAction()
 	exportLogAction.SetText("Export log to file...")
+	// TODO: Triggered().Attach()
 
 	exportTunnelAction := walk.NewAction()
 	exportTunnelAction.SetText("Export tunnels to zip...")
+	// TODO: Triggered().Attach()
 
 	addMenu, _ := walk.NewMenu()
 	addMenu.Actions().Add(addAction)
@@ -199,87 +190,13 @@ func setupTunnelsList() {
 }
 
 func onDelete() {
+	// result is either walk.IDNO or walk.IDYES
+	walk.MsgBox(mw, fmt.Sprintf(`Delete "%s"?`, "tunnel name"), fmt.Sprintf(`Are you sure you want to delete "%s"`, "tunnel name"), walk.MsgBoxYesNo|walk.MsgBoxIconWarning)
 }
 
 func onEdit() {
-	dlg, _ := walk.NewDialog(mw)
-
-	// TODO: Size does not seem to apply
-	dlg.SetSize(walk.Size{900, 800})
-	dlg.SetLayout(walk.NewVBoxLayout())
-	dlg.SetIcon(icon)
-	dlg.SetTitle("Edit tunnel")
-
-	nameContainer, _ := walk.NewComposite(dlg)
-	nameContainer.SetLayout(walk.NewHBoxLayout())
-
-	nameLabel, _ := walk.NewTextLabel(nameContainer)
-	nameLabel.SetText("Name:")
-
-	nameEdit, _ := walk.NewLineEdit(nameContainer)
-	_ = nameEdit
-	// TODO: compute the next available tunnel name ?
-	// nameEdit.SetText("")
-
-	pubkeyContainer, _ := walk.NewComposite(dlg)
-	pubkeyContainer.SetLayout(walk.NewHBoxLayout())
-
-	pubkeyLabel, _ := walk.NewTextLabel(pubkeyContainer)
-	pubkeyLabel.SetText("Public key:")
-
-	pubkeyEdit, _ := walk.NewLineEdit(pubkeyContainer)
-	pubkeyEdit.SetReadOnly(true)
-	pubkeyEdit.SetText("(unknown)")
-
-	se, _ := syntax.NewSyntaxEdit(dlg)
-	lastPrivate := ""
-	se.PrivateKeyChanged().Attach(func(privateKey string) {
-		if privateKey == lastPrivate {
-			return
-		}
-		lastPrivate = privateKey
-		key := func() string {
-			if privateKey == "" {
-				return ""
-			}
-			decoded, err := base64.StdEncoding.DecodeString(privateKey)
-			if err != nil {
-				return ""
-			}
-			if len(decoded) != 32 {
-				return ""
-			}
-			var p [32]byte
-			var s [32]byte
-			copy(s[:], decoded[:32])
-			curve25519.ScalarBaseMult(&p, &s)
-			return base64.StdEncoding.EncodeToString(p[:])
-		}()
-		if key != "" {
-			pubkeyEdit.SetText(key)
-		} else {
-			pubkeyEdit.SetText("(unknown)")
-		}
-	})
-	se.SetText(demoConfig)
-
-	buttonsContainer, _ := walk.NewComposite(dlg)
-	buttonsContainer.SetLayout(walk.NewHBoxLayout())
-
-	walk.NewHSpacer(buttonsContainer)
-
-	cancelButton, _ := walk.NewPushButton(buttonsContainer)
-	cancelButton.SetText("Cancel")
-	cancelButton.Clicked().Attach(func() { dlg.Cancel() })
-
-	saveButton, _ := walk.NewPushButton(buttonsContainer)
-	saveButton.SetText("Save")
-	saveButton.Clicked().Attach(func() {
-		// TODO: Save the current config
-		dlg.Accept()
-	})
-
-	dlg.Run()
+	// result is either walk.DlgCmdOK or walk.DlgCmdCancel
+	getTunnelEdit().Run()
 }
 
 // Bind service events to the GUI.
@@ -341,4 +258,94 @@ func bindService() {
 			setServiceState(&tunnel, state, false)
 		}
 	}()
+}
+
+func getTunnelEdit() *walk.Dialog {
+	dlg, _ := walk.NewDialog(mw)
+
+	// TODO: Size does not seem to apply
+	dlg.SetSize(walk.Size{900, 800})
+	dlg.SetLayout(walk.NewVBoxLayout())
+	dlg.SetIcon(icon)
+	dlg.SetTitle("Edit tunnel")
+
+	nameContainer, _ := walk.NewComposite(dlg)
+	nameContainer.SetLayout(walk.NewHBoxLayout())
+
+	nameLabel, _ := walk.NewTextLabel(nameContainer)
+	nameLabel.SetText("Name:")
+
+	nameEdit, _ := walk.NewLineEdit(nameContainer)
+	_ = nameEdit
+	// TODO: compute the next available tunnel name ?
+	// nameEdit.SetText("")
+
+	pubkeyContainer, _ := walk.NewComposite(dlg)
+	pubkeyContainer.SetLayout(walk.NewHBoxLayout())
+
+	pubkeyLabel, _ := walk.NewTextLabel(pubkeyContainer)
+	pubkeyLabel.SetText("Public key:")
+
+	pubkeyEdit, _ := walk.NewLineEdit(pubkeyContainer)
+	pubkeyEdit.SetReadOnly(true)
+	pubkeyEdit.SetText("(unknown)")
+
+	syntaxEdit, _ := syntax.NewSyntaxEdit(dlg)
+	lastPrivate := ""
+	syntaxEdit.PrivateKeyChanged().Attach(func(privateKey string) {
+		if privateKey == lastPrivate {
+			return
+		}
+		lastPrivate = privateKey
+		key := func() string {
+			// TODO: use conf/parser:parseKeyBase64(privateKey).Public().String()
+			if privateKey == "" {
+				return ""
+			}
+			decoded, err := base64.StdEncoding.DecodeString(privateKey)
+			if err != nil {
+				return ""
+			}
+			if len(decoded) != 32 {
+				return ""
+			}
+			var p [32]byte
+			var s [32]byte
+			copy(s[:], decoded[:32])
+			curve25519.ScalarBaseMult(&p, &s)
+			return base64.StdEncoding.EncodeToString(p[:])
+		}()
+		if key != "" {
+			pubkeyEdit.SetText(key)
+		} else {
+			pubkeyEdit.SetText("(unknown)")
+		}
+	})
+
+	// Generate new private key
+	pk, _ := conf.NewPrivateKey()
+	newConfig := &conf.Config{Interface: conf.Interface{PrivateKey: *pk}}
+	newConfig.ToWgQuick()
+	syntaxEdit.SetText(newConfig.ToWgQuick())
+
+	buttonsContainer, _ := walk.NewComposite(dlg)
+	buttonsContainer.SetLayout(walk.NewHBoxLayout())
+
+	walk.NewHSpacer(buttonsContainer)
+
+	cancelButton, _ := walk.NewPushButton(buttonsContainer)
+	cancelButton.SetText("Cancel")
+	cancelButton.Clicked().Attach(func() { dlg.Cancel() })
+
+	saveButton, _ := walk.NewPushButton(buttonsContainer)
+	saveButton.SetText("Save")
+	saveButton.Clicked().Attach(func() {
+		// TODO: Save the current config
+		dlg.Accept()
+	})
+
+	dlg.SetCancelButton(cancelButton)
+	dlg.SetDefaultButton(saveButton)
+
+	return dlg
 }
