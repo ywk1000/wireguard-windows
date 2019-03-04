@@ -256,68 +256,37 @@ func onEdit() {
 			return base64.StdEncoding.EncodeToString(p[:])
 		}()
 		if key != "" {
-			tl.SetText("Public key: " + key)
+			pubkeyEdit.SetText(key)
 		} else {
-			tl.SetText("Public key: (unknown)")
+			pubkeyEdit.SetText("(unknown)")
 		}
 	})
 	se.SetText(demoConfig)
 
-	pb, _ := walk.NewPushButton(dlg)
-	pb.SetText("Start")
-	pb.Clicked().Attach(func() {
-		restoreState := true
-		pbE := pb.Enabled()
-		seE := se.Enabled()
-		pbT := pb.Text()
-		defer func() {
-			if restoreState {
-				pb.SetEnabled(pbE)
-				se.SetEnabled(seE)
-				pb.SetText(pbT)
-			}
-		}()
-		pb.SetEnabled(false)
-		se.SetEnabled(false)
-		pb.SetText("Requesting..")
-		if runningTunnel != nil {
-			err := runningTunnel.Stop()
-			if err != nil {
-				walk.MsgBox(mw, "Unable to stop tunnel", err.Error(), walk.MsgBoxIconError)
-				return
-			}
-			restoreState = false
-			runningTunnel = nil
-			return
-		}
-		c, err := conf.FromWgQuick(se.Text(), "test")
-		if err != nil {
-			walk.MsgBox(mw, "Invalid configuration", err.Error(), walk.MsgBoxIconError)
-			return
-		}
-		tunnel, err := service.IPCClientNewTunnel(c)
-		if err != nil {
-			walk.MsgBox(mw, "Unable to create tunnel", err.Error(), walk.MsgBoxIconError)
-			return
-		}
-		err = tunnel.Start()
-		if err != nil {
-			walk.MsgBox(mw, "Unable to start tunnel", err.Error(), walk.MsgBoxIconError)
-			return
-		}
-		restoreState = false
-		runningTunnel = &tunnel
+	buttonsContainer, _ := walk.NewComposite(dlg)
+	buttonsContainer.SetLayout(walk.NewHBoxLayout())
+
+	walk.NewHSpacer(buttonsContainer)
+
+	cancelButton, _ := walk.NewPushButton(buttonsContainer)
+	cancelButton.SetText("Cancel")
+	cancelButton.Clicked().Attach(func() { dlg.Cancel() })
+
+	saveButton, _ := walk.NewPushButton(buttonsContainer)
+	saveButton.SetText("Save")
+	saveButton.Clicked().Attach(func() {
+		// TODO: Save the current config
+		dlg.Accept()
 	})
 
 	dlg.Run()
 }
 
+// Bind service events to the GUI.
+// The tray icon tooltip is defined by the active tunnel (at most one).
+//
 func bindService() {
-
 	setServiceState := func(tunnel *service.Tunnel, state service.TunnelState, showNotifications bool) {
-		if tunnel.Name != "test" {
-			return
-		}
 		//TODO: also set tray icon to reflect state
 		switch state {
 		case service.TunnelStarting:
