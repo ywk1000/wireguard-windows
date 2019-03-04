@@ -210,8 +210,26 @@ func onEdit() {
 	dlg.SetIcon(icon)
 	dlg.SetTitle("Edit tunnel")
 
-	tl, _ := walk.NewTextLabel(dlg)
-	tl.SetText("Public key: (unknown)")
+	nameContainer, _ := walk.NewComposite(dlg)
+	nameContainer.SetLayout(walk.NewHBoxLayout())
+
+	nameLabel, _ := walk.NewTextLabel(nameContainer)
+	nameLabel.SetText("Name:")
+
+	nameEdit, _ := walk.NewLineEdit(nameContainer)
+	_ = nameEdit
+	// TODO: compute the next available tunnel name ?
+	// nameEdit.SetText("")
+
+	pubkeyContainer, _ := walk.NewComposite(dlg)
+	pubkeyContainer.SetLayout(walk.NewHBoxLayout())
+
+	pubkeyLabel, _ := walk.NewTextLabel(pubkeyContainer)
+	pubkeyLabel.SetText("Public key:")
+
+	pubkeyEdit, _ := walk.NewLineEdit(pubkeyContainer)
+	pubkeyEdit.SetReadOnly(true)
+	pubkeyEdit.SetText("(unknown)")
 
 	se, _ := syntax.NewSyntaxEdit(dlg)
 	lastPrivate := ""
