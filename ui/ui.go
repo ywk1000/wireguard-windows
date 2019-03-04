@@ -322,10 +322,10 @@ func bindService() {
 			// pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Deactivating...")
 		case service.TunnelStopped, service.TunnelDeleting:
-			// if runningTunnel != nil {
-			// 	runningTunnel.Delete()
-			// 	runningTunnel = nil
-			// }
+			if runningTunnel != nil {
+				runningTunnel.Delete()
+				runningTunnel = nil
+			}
 			// se.SetEnabled(true)
 			// pb.SetText("Start")
 			// pb.SetEnabled(true)
@@ -336,6 +336,7 @@ func bindService() {
 			}
 		}
 	}
+
 	service.IPCClientRegisterTunnelChange(func(tunnel *service.Tunnel, state service.TunnelState) {
 		setServiceState(tunnel, state, true)
 	})
@@ -353,5 +354,4 @@ func bindService() {
 			setServiceState(&tunnel, state, false)
 		}
 	}()
-
 }
