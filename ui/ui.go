@@ -8,13 +8,14 @@ package ui
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
+
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
 	"golang.org/x/crypto/curve25519"
 	"golang.zx2c4.com/wireguard/windows/conf"
 	"golang.zx2c4.com/wireguard/windows/service"
 	"golang.zx2c4.com/wireguard/windows/ui/syntax"
-	"os"
 )
 
 const demoConfig = `[Interface]
