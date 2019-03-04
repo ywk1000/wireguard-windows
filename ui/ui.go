@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
@@ -29,28 +30,190 @@ Endpoint = demo.wireguard.com:12912
 AllowedIPs = 0.0.0.0/0
 `
 
-func RunUI() {
-	icon, _ := walk.NewIconFromResourceId(8)
+var (
+	mw            *walk.MainWindow
+	tray          *walk.NotifyIcon
+	icon          *walk.Icon
+	runningTunnel *service.Tunnel
+)
 
-	mw, _ := walk.NewMainWindowWithName("WireGuard")
-	tray, _ := walk.NewNotifyIcon(mw)
+func RunUI() {
+	mw, _ = walk.NewMainWindowWithName("WireGuard")
+
+	tray, _ = walk.NewNotifyIcon(mw)
 	defer tray.Dispose()
-	tray.SetIcon(icon)
+
+	icon, _ = walk.NewIconFromResourceId(8)
+	defer icon.Dispose()
+
+	setupTray()
+	setupTunnelsList()
+	bindService()
+
+	mw.Run()
+}
+
+func setupTray() {
 	tray.SetToolTip("WireGuard: Deactivated")
 	tray.SetVisible(true)
+	tray.SetIcon(icon)
 
-	mw.SetSize(walk.Size{900, 800})
-	mw.SetLayout(walk.NewVBoxLayout())
-	mw.SetIcon(icon)
-	mw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
-		*canceled = true
-		mw.Hide()
+	tray.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
+		if button == walk.LeftButton {
+			mw.Show()
+			win.SetForegroundWindow(mw.Handle())
+		}
 	})
 
-	tl, _ := walk.NewTextLabel(mw)
+	// configure initial menu items
+	for _, item := range [...]struct {
+		label     string
+		handler   walk.EventHandler
+		enabled   bool
+		separator bool
+	}{
+		{label: "Status: unknown"},
+		// TODO: Currently enabled tunnels CIDRs
+		{separator: true},
+		// TODO: Tunnels go here
+		{separator: true},
+		{label: "&Manage tunnels...", handler: onManage, enabled: true},
+		{label: "&Import tunnel(s) from file...", handler: onImport, enabled: true},
+		{separator: true},
+		{label: "&About WireGuard", handler: onAbout, enabled: true},
+		{label: "&Quit", handler: onQuit, enabled: true},
+	} {
+		var action *walk.Action
+		if item.separator {
+			action = walk.NewSeparatorAction()
+		} else {
+			action = walk.NewAction()
+			action.SetText(item.label)
+			action.SetEnabled(item.enabled)
+			if item.handler != nil {
+				action.Triggered().Attach(item.handler)
+			}
+		}
+
+		tray.ContextMenu().Actions().Add(action)
+	}
+}
+
+// Handlers
+
+func onAbout() {
+	walk.MsgBox(mw, "About WireGuard", "TODO", walk.MsgBoxOK)
+}
+
+func onQuit() {
+	tray.Dispose()
+	_, err := service.IPCClientQuit(true)
+	if err != nil {
+		walk.MsgBox(nil, "Error Exiting WireGuard", fmt.Sprintf("Unable to exit service due to: %s. You may want to stop WireGuard from the service manager.", err), walk.MsgBoxIconError)
+		os.Exit(1)
+	}
+}
+
+func onManage() {
+	mw.Show()
+	win.SetForegroundWindow(mw.Handle())
+}
+
+func onImport() {
+	dlg := &walk.FileDialog{}
+	// dlg.InitialDirPath
+	dlg.Filter = "Configuration Files (*.zip, *.conf)|*.zip;*.conf|All Files (*.*)|*.*"
+	dlg.Title = "Import tunnel(s) from file..."
+
+	if ok, _ := dlg.ShowOpenMultiple(mw); !ok {
+		return
+	}
+
+	walk.MsgBox(mw, "Must import", strings.Join(dlg.FilePaths, ", "), walk.MsgBoxOK)
+}
+
+func setupTunnelsList() {
+	mw.SetSize(walk.Size{900, 800})
+	mw.SetLayout(walk.NewHBoxLayout())
+	mw.SetIcon(icon)
+	mw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
+		// "Close to tray" instead of exiting application
+		// *canceled = true
+		// mw.Hide()
+	})
+
+	listBoxContainer, _ := walk.NewComposite(mw)
+	listBoxContainer.SetLayout(walk.NewVBoxLayout())
+
+	// Left side of main window: listbox, controls
+
+	// TODO: not greedy vertically
+	walk.NewListBox(listBoxContainer)
+	// TODO: Use a Rebar on the ListBox to tie them together
+	controls := mw.ToolBar()
+
+	importAction := walk.NewAction()
+	importAction.SetText("Import tunnels from file...")
+	importAction.Triggered().Attach(onImport)
+
+	addAction := walk.NewAction()
+	addAction.SetText("Add empty tunnel")
+	// TODO: How to tell it's a new tunnel
+	addAction.Triggered().Attach(onEdit)
+
+	deleteAction := walk.NewAction()
+	deleteAction.SetText("-")
+	deleteAction.Triggered().Attach(onDelete)
+
+	exportLogAction := walk.NewAction()
+	exportLogAction.SetText("Export log to file...")
+
+	exportTunnelAction := walk.NewAction()
+	exportTunnelAction.SetText("Export tunnels to zip...")
+
+	addMenu, _ := walk.NewMenu()
+	addMenu.Actions().Add(addAction)
+	addMenu.Actions().Add(importAction)
+
+	addMenuAction, _ := controls.Actions().AddMenu(addMenu)
+	addMenuAction.SetText("+")
+
+	settingsMenu, _ := walk.NewMenu()
+	settingsMenu.Actions().Add(exportLogAction)
+	settingsMenu.Actions().Add(exportTunnelAction)
+
+	settingsMenuAction, _ := controls.Actions().AddMenu(settingsMenu)
+	settingsMenuAction.SetText("S")
+
+	// Right side of main window: currently selected tunnel, edit
+
+	currentTunnelContainer, _ := walk.NewComposite(mw)
+	currentTunnelContainer.SetLayout(walk.NewVBoxLayout())
+
+	currentTunnel, _ := walk.NewTextEdit(currentTunnelContainer)
+	currentTunnel.SetReadOnly(true)
+
+	editTunnel, _ := walk.NewPushButton(currentTunnelContainer)
+	editTunnel.SetText("Edit")
+	editTunnel.Clicked().Attach(onEdit)
+}
+
+func onDelete() {
+}
+
+func onEdit() {
+	dlg, _ := walk.NewDialog(mw)
+
+	// TODO: Size does not seem to apply
+	dlg.SetSize(walk.Size{900, 800})
+	dlg.SetLayout(walk.NewVBoxLayout())
+	dlg.SetIcon(icon)
+	dlg.SetTitle("Edit tunnel")
+
+	tl, _ := walk.NewTextLabel(dlg)
 	tl.SetText("Public key: (unknown)")
 
-	se, _ := syntax.NewSyntaxEdit(mw)
+	se, _ := syntax.NewSyntaxEdit(dlg)
 	lastPrivate := ""
 	se.PrivateKeyChanged().Attach(func(privateKey string) {
 		if privateKey == lastPrivate {
@@ -82,9 +245,8 @@ func RunUI() {
 	})
 	se.SetText(demoConfig)
 
-	pb, _ := walk.NewPushButton(mw)
+	pb, _ := walk.NewPushButton(dlg)
 	pb.SetText("Start")
-	var runningTunnel *service.Tunnel
 	pb.Clicked().Attach(func() {
 		restoreState := true
 		pbE := pb.Enabled()
@@ -129,23 +291,10 @@ func RunUI() {
 		runningTunnel = &tunnel
 	})
 
-	quitAction := walk.NewAction()
-	quitAction.SetText("Exit")
-	quitAction.Triggered().Attach(func() {
-		tray.Dispose()
-		_, err := service.IPCClientQuit(true)
-		if err != nil {
-			walk.MsgBox(nil, "Error Exiting WireGuard", fmt.Sprintf("Unable to exit service due to: %s. You may want to stop WireGuard from the service manager.", err), walk.MsgBoxIconError)
-			os.Exit(1)
-		}
-	})
-	tray.ContextMenu().Actions().Add(quitAction)
-	tray.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
-		if button == walk.LeftButton {
-			mw.Show()
-			win.SetForegroundWindow(mw.Handle())
-		}
-	})
+	dlg.Run()
+}
+
+func bindService() {
 
 	setServiceState := func(tunnel *service.Tunnel, state service.TunnelState, showNotifications bool) {
 		if tunnel.Name != "test" {
@@ -154,32 +303,32 @@ func RunUI() {
 		//TODO: also set tray icon to reflect state
 		switch state {
 		case service.TunnelStarting:
-			se.SetEnabled(false)
-			pb.SetText("Starting...")
-			pb.SetEnabled(false)
+			// se.SetEnabled(false)
+			// pb.SetText("Starting...")
+			// pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Activating...")
 		case service.TunnelStarted:
-			se.SetEnabled(false)
-			pb.SetText("Stop")
-			pb.SetEnabled(true)
+			// se.SetEnabled(false)
+			// pb.SetText("Stop")
+			// pb.SetEnabled(true)
 			tray.SetToolTip("WireGuard: Activated")
 			if showNotifications {
 				//TODO: ShowCustom with right icon
 				tray.ShowInfo("WireGuard Activated", fmt.Sprintf("The %s tunnel has been activated.", tunnel.Name))
 			}
 		case service.TunnelStopping:
-			se.SetEnabled(false)
-			pb.SetText("Stopping...")
-			pb.SetEnabled(false)
+			// se.SetEnabled(false)
+			// pb.SetText("Stopping...")
+			// pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Deactivating...")
 		case service.TunnelStopped, service.TunnelDeleting:
-			if runningTunnel != nil {
-				runningTunnel.Delete()
-				runningTunnel = nil
-			}
-			se.SetEnabled(true)
-			pb.SetText("Start")
-			pb.SetEnabled(true)
+			// if runningTunnel != nil {
+			// 	runningTunnel.Delete()
+			// 	runningTunnel = nil
+			// }
+			// se.SetEnabled(true)
+			// pb.SetText("Start")
+			// pb.SetEnabled(true)
 			tray.SetToolTip("WireGuard: Deactivated")
 			if showNotifications {
 				//TODO: ShowCustom with right icon
@@ -205,5 +354,4 @@ func RunUI() {
 		}
 	}()
 
-	mw.Run()
 }
