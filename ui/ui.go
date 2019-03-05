@@ -280,32 +280,35 @@ func getTunnelEdit() *walk.Dialog {
 
 	// TODO: Size does not seem to apply
 	dlg.SetSize(walk.Size{900, 800})
-	dlg.SetLayout(walk.NewVBoxLayout())
 	dlg.SetIcon(icon)
 	dlg.SetTitle("Edit tunnel")
+	dlg.SetLayout(walk.NewGridLayout())
+	dlg.Layout().(*walk.GridLayout).SetColumnStretchFactor(1, 3)
+	dlg.Layout().SetSpacing(6)
+	dlg.Layout().SetMargins(walk.Margins{18, 18, 18, 18})
 
-	nameContainer, _ := walk.NewComposite(dlg)
-	nameContainer.SetLayout(walk.NewHBoxLayout())
-
-	nameLabel, _ := walk.NewTextLabel(nameContainer)
+	nameLabel, _ := walk.NewTextLabel(dlg)
+	dlg.Layout().(*walk.GridLayout).SetRange(nameLabel, walk.Rectangle{0, 0, 1, 1})
+	nameLabel.SetTextAlignment(walk.AlignHFarVCenter)
 	nameLabel.SetText("Name:")
 
-	nameEdit, _ := walk.NewLineEdit(nameContainer)
-	_ = nameEdit
+	nameEdit, _ := walk.NewLineEdit(dlg)
+	dlg.Layout().(*walk.GridLayout).SetRange(nameEdit, walk.Rectangle{1, 0, 1, 1})
 	// TODO: compute the next available tunnel name ?
 	// nameEdit.SetText("")
 
-	pubkeyContainer, _ := walk.NewComposite(dlg)
-	pubkeyContainer.SetLayout(walk.NewHBoxLayout())
-
-	pubkeyLabel, _ := walk.NewTextLabel(pubkeyContainer)
+	pubkeyLabel, _ := walk.NewTextLabel(dlg)
+	dlg.Layout().(*walk.GridLayout).SetRange(pubkeyLabel, walk.Rectangle{0, 1, 1, 1})
+	pubkeyLabel.SetTextAlignment(walk.AlignHFarVCenter)
 	pubkeyLabel.SetText("Public key:")
 
-	pubkeyEdit, _ := walk.NewLineEdit(pubkeyContainer)
+	pubkeyEdit, _ := walk.NewLineEdit(dlg)
+	dlg.Layout().(*walk.GridLayout).SetRange(pubkeyEdit, walk.Rectangle{1, 1, 1, 1})
 	pubkeyEdit.SetReadOnly(true)
 	pubkeyEdit.SetText("(unknown)")
 
 	syntaxEdit, _ := syntax.NewSyntaxEdit(dlg)
+	dlg.Layout().(*walk.GridLayout).SetRange(syntaxEdit, walk.Rectangle{0, 2, 2, 1})
 	lastPrivate := ""
 	syntaxEdit.PrivateKeyChanged().Attach(func(privateKey string) {
 		if privateKey == lastPrivate {
@@ -326,7 +329,9 @@ func getTunnelEdit() *walk.Dialog {
 	syntaxEdit.SetText(newConfig.ToWgQuick())
 
 	buttonsContainer, _ := walk.NewComposite(dlg)
+	dlg.Layout().(*walk.GridLayout).SetRange(buttonsContainer, walk.Rectangle{0, 3, 2, 1})
 	buttonsContainer.SetLayout(walk.NewHBoxLayout())
+	buttonsContainer.Layout().SetMargins(walk.Margins{})
 
 	walk.NewHSpacer(buttonsContainer)
 
