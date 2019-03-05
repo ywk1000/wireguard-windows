@@ -312,7 +312,6 @@ func getTunnelEdit() *walk.Dialog {
 	// Generate new private key
 	pk, _ := conf.NewPrivateKey()
 	newConfig := &conf.Config{Interface: conf.Interface{PrivateKey: *pk}}
-	newConfig.ToWgQuick()
 	syntaxEdit.SetText(newConfig.ToWgQuick())
 
 	buttonsContainer, _ := walk.NewComposite(dlg)
