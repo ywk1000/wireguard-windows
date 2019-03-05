@@ -52,7 +52,7 @@ func setupTray() {
 		if button == walk.LeftButton {
 			mw.Show()
 			win.SetForegroundWindow(mw.Handle())
-			updateConfView()
+			// updateConfView()
 		}
 	})
 
@@ -131,6 +131,7 @@ func setupTunnelList() {
 		// "Close to tray" instead of exiting application
 		// *canceled = true
 		// mw.Hide()
+		onQuit()
 	})
 
 	listBoxContainer, _ := walk.NewComposite(mw)
@@ -209,13 +210,11 @@ func bindService() {
 		//TODO: also set tray icon to reflect state
 		switch state {
 		case service.TunnelStarting:
-			showRunningView(false)
 			// se.SetEnabled(false)
 			// pb.SetText("Starting...")
 			// pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Activating...")
 		case service.TunnelStarted:
-			showRunningView(true)
 			// se.SetEnabled(false)
 			// pb.SetText("Stop")
 			// pb.SetEnabled(true)
@@ -225,16 +224,11 @@ func bindService() {
 				tray.ShowInfo("WireGuard Activated", fmt.Sprintf("The %s tunnel has been activated.", tunnel.Name))
 			}
 		case service.TunnelStopping:
-			showRunningView(false)
 			// se.SetEnabled(false)
 			// pb.SetText("Stopping...")
 			// pb.SetEnabled(false)
-			se.SetEnabled(false)
-			pb.SetText("Stopping...")
-			pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Deactivating...")
 		case service.TunnelStopped, service.TunnelDeleting:
-			showRunningView(false)
 			if runningTunnel != nil {
 				runningTunnel.Stop()
 				runningTunnel = nil
@@ -359,16 +353,6 @@ func getTunnelEdit() *walk.Dialog {
 			<-t.C
 		}
 	}()
-	showRunningView := func(on bool) {
-		cv.SetVisible(on)
-		cv.SetEnabled(on)
-		se.SetVisible(!on)
-		tl.SetVisible(!on)
-		if on {
-			updateConfView()
-		}
-		mw.Invalidate()
-	}
 
 	buttonsContainer, _ := walk.NewComposite(dlg)
 	buttonsContainer.SetLayout(walk.NewHBoxLayout())
