@@ -68,11 +68,11 @@ func (se *SyntaxEdit) LayoutFlags() walk.LayoutFlags {
 }
 
 func (se *SyntaxEdit) MinSizeHint() walk.Size {
-	return walk.Size{20, 12}
+	return walk.Size{200, 120}
 }
 
 func (se *SyntaxEdit) SizeHint() walk.Size {
-	return walk.Size{200, 100}
+	return walk.Size{200, 120}
 }
 
 func (se *SyntaxEdit) Text() string {
