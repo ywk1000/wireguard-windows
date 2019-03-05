@@ -6,14 +6,12 @@
 package ui
 
 import (
-	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
-	"golang.org/x/crypto/curve25519"
 	"golang.zx2c4.com/wireguard/windows/conf"
 	"golang.zx2c4.com/wireguard/windows/service"
 	"golang.zx2c4.com/wireguard/windows/ui/syntax"
@@ -303,26 +301,9 @@ func getTunnelEdit() *walk.Dialog {
 			return
 		}
 		lastPrivate = privateKey
-		key := func() string {
-			// TODO: use conf/parser:parseKeyBase64(privateKey).Public().String()
-			if privateKey == "" {
-				return ""
-			}
-			decoded, err := base64.StdEncoding.DecodeString(privateKey)
-			if err != nil {
-				return ""
-			}
-			if len(decoded) != 32 {
-				return ""
-			}
-			var p [32]byte
-			var s [32]byte
-			copy(s[:], decoded[:32])
-			curve25519.ScalarBaseMult(&p, &s)
-			return base64.StdEncoding.EncodeToString(p[:])
-		}()
+		key, _ := conf.NewPrivateKeyFromString(privateKey)
 		if key != "" {
-			pubkeyEdit.SetText(key)
+			pubkeyEdit.SetText(key.Public().String())
 		} else {
 			pubkeyEdit.SetText("(unknown)")
 		}
