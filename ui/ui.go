@@ -302,7 +302,7 @@ func getTunnelEdit() *walk.Dialog {
 		}
 		lastPrivate = privateKey
 		key, _ := conf.NewPrivateKeyFromString(privateKey)
-		if key != "" {
+		if key != nil {
 			pubkeyEdit.SetText(key.Public().String())
 		} else {
 			pubkeyEdit.SetText("(unknown)")
