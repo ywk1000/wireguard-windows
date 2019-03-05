@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
@@ -21,9 +20,10 @@ import (
 )
 
 var (
-	mw            *walk.MainWindow
-	tray          *walk.NotifyIcon
-	icon          *walk.Icon
+	mw   *walk.MainWindow
+	tray *walk.NotifyIcon
+	icon *walk.Icon
+	// TODO: Only one running tunnel at most atm. Plan for more.
 	runningTunnel *service.Tunnel
 )
 
@@ -330,29 +330,6 @@ func getTunnelEdit() *walk.Dialog {
 	newConfig := &conf.Config{Interface: conf.Interface{PrivateKey: *pk}}
 	newConfig.ToWgQuick()
 	syntaxEdit.SetText(newConfig.ToWgQuick())
-
-	cv, _ := syntax.NewConfView(dlg)
-	cv.SetVisible(false)
-	cv.SetEnabled(false)
-
-	updateConfView := func() {
-		tun := runningTunnel
-		if tun == nil || !mw.Visible() || !cv.Visible() {
-			return
-		}
-		conf, err := tun.RuntimeConfig()
-		if err != nil {
-			return
-		}
-		cv.SetConfiguration(&conf)
-	}
-	go func() {
-		t := time.NewTicker(time.Second)
-		for {
-			updateConfView()
-			<-t.C
-		}
-	}()
 
 	buttonsContainer, _ := walk.NewComposite(dlg)
 	buttonsContainer.SetLayout(walk.NewHBoxLayout())
