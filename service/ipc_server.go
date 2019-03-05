@@ -8,8 +8,10 @@ package service
 import (
 	"bytes"
 	"encoding/gob"
+	"github.com/Microsoft/go-winio"
 	"golang.org/x/sys/windows/svc"
 	"golang.zx2c4.com/wireguard/windows/conf"
+	"io/ioutil"
 	"net/rpc"
 	"os"
 	"sync"
@@ -37,8 +39,34 @@ func (s *ManagerService) StoredConfig(tunnelName string, config *conf.Config) er
 }
 
 func (s *ManagerService) RuntimeConfig(tunnelName string, config *conf.Config) error {
-	//TODO
-
+	storedConfig, err := conf.LoadFromName(tunnelName)
+	if err != nil {
+		return err
+	}
+	pipePath, err := PipePathOfTunnel(storedConfig.Name)
+	if err != nil {
+		return err
+	}
+	pipe, err := winio.DialPipe(pipePath, nil)
+	if err != nil {
+		return err
+	}
+	pipe.SetWriteDeadline(time.Now().Add(time.Second * 2))
+	_, err = pipe.Write([]byte("get=1\n\n"))
+	if err != nil {
+		return err
+	}
+	pipe.SetReadDeadline(time.Now().Add(time.Second * 2))
+	resp, err := ioutil.ReadAll(pipe)
+	if err != nil {
+		return err
+	}
+	pipe.Close()
+	runtimeConfig, err := conf.FromUAPI(string(resp), storedConfig)
+	if err != nil {
+		return err
+	}
+	*config = *runtimeConfig
 	return nil
 }
 
@@ -66,7 +94,10 @@ func (s *ManagerService) Stop(tunnelName string, unused *uintptr) error {
 }
 
 func (s *ManagerService) WaitForStop(tunnelName string, unused *uintptr) error {
-	serviceName := "WireGuard Tunnel: " + tunnelName
+	serviceName, err := ServiceNameOfTunnel(tunnelName)
+	if err != nil {
+		return err
+	}
 	m, err := serviceManager()
 	if err != nil {
 		return err
@@ -91,7 +122,10 @@ func (s *ManagerService) Delete(tunnelName string, unused *uintptr) error {
 }
 
 func (s *ManagerService) State(tunnelName string, state *TunnelState) error {
-	serviceName := "WireGuard Tunnel: " + tunnelName
+	serviceName, err := ServiceNameOfTunnel(tunnelName)
+	if err != nil {
+		return err
+	}
 	m, err := serviceManager()
 	if err != nil {
 		return err

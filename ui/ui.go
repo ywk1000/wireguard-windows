@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
@@ -51,6 +52,7 @@ func setupTray() {
 		if button == walk.LeftButton {
 			mw.Show()
 			win.SetForegroundWindow(mw.Handle())
+			updateConfView()
 		}
 	})
 
@@ -207,11 +209,13 @@ func bindService() {
 		//TODO: also set tray icon to reflect state
 		switch state {
 		case service.TunnelStarting:
+			showRunningView(false)
 			// se.SetEnabled(false)
 			// pb.SetText("Starting...")
 			// pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Activating...")
 		case service.TunnelStarted:
+			showRunningView(true)
 			// se.SetEnabled(false)
 			// pb.SetText("Stop")
 			// pb.SetEnabled(true)
@@ -221,13 +225,18 @@ func bindService() {
 				tray.ShowInfo("WireGuard Activated", fmt.Sprintf("The %s tunnel has been activated.", tunnel.Name))
 			}
 		case service.TunnelStopping:
+			showRunningView(false)
 			// se.SetEnabled(false)
 			// pb.SetText("Stopping...")
 			// pb.SetEnabled(false)
+			se.SetEnabled(false)
+			pb.SetText("Stopping...")
+			pb.SetEnabled(false)
 			tray.SetToolTip("WireGuard: Deactivating...")
 		case service.TunnelStopped, service.TunnelDeleting:
+			showRunningView(false)
 			if runningTunnel != nil {
-				runningTunnel.Delete()
+				runningTunnel.Stop()
 				runningTunnel = nil
 			}
 			// se.SetEnabled(true)
@@ -327,6 +336,39 @@ func getTunnelEdit() *walk.Dialog {
 	newConfig := &conf.Config{Interface: conf.Interface{PrivateKey: *pk}}
 	newConfig.ToWgQuick()
 	syntaxEdit.SetText(newConfig.ToWgQuick())
+
+	cv, _ := syntax.NewConfView(dlg)
+	cv.SetVisible(false)
+	cv.SetEnabled(false)
+
+	updateConfView := func() {
+		tun := runningTunnel
+		if tun == nil || !mw.Visible() || !cv.Visible() {
+			return
+		}
+		conf, err := tun.RuntimeConfig()
+		if err != nil {
+			return
+		}
+		cv.SetConfiguration(&conf)
+	}
+	go func() {
+		t := time.NewTicker(time.Second)
+		for {
+			updateConfView()
+			<-t.C
+		}
+	}()
+	showRunningView := func(on bool) {
+		cv.SetVisible(on)
+		cv.SetEnabled(on)
+		se.SetVisible(!on)
+		tl.SetVisible(!on)
+		if on {
+			updateConfView()
+		}
+		mw.Invalidate()
+	}
 
 	buttonsContainer, _ := walk.NewComposite(dlg)
 	buttonsContainer.SetLayout(walk.NewHBoxLayout())

@@ -36,7 +36,7 @@ func bindSocketRoute(family winipcfg.AddressFamily, device *device.Device, ourLu
 	}
 	lowestMetric := ^uint32(0)
 	index := uint32(0) // Zero is "unspecified", which for IP_UNICAST_IF resets the value, which is what we want.
-	luid := uint64(0) // Hopefully luid zero is unspecified, but hard to find docs saying so.
+	luid := uint64(0)  // Hopefully luid zero is unspecified, but hard to find docs saying so.
 	for _, route := range routes {
 		if route.DestinationPrefix.PrefixLength != 0 || route.InterfaceLuid == ourLuid {
 			continue
@@ -59,10 +59,11 @@ func bindSocketRoute(family winipcfg.AddressFamily, device *device.Device, ourLu
 	return nil
 }
 
-func monitorDefaultRoutes(device *device.Device, guid *windows.GUID) (*winipcfg.RouteChangeCallback, error) {
+func monitorDefaultRoutes(device *device.Device, autoMTU bool, guid *windows.GUID) (*winipcfg.RouteChangeCallback, error) {
 	ourLuid, err := winipcfg.InterfaceGuidToLuid(guid)
 	lastLuid4 := uint64(0)
 	lastLuid6 := uint64(0)
+	lastMtu := uint32(0)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +75,50 @@ func monitorDefaultRoutes(device *device.Device, guid *windows.GUID) (*winipcfg.
 		err = bindSocketRoute(winipcfg.AF_INET6, device, ourLuid, &lastLuid6)
 		if err != nil {
 			return err
+		}
+		if !autoMTU {
+			return nil
+		}
+		mtu := uint32(0)
+		if lastLuid4 != 0 {
+			iface, err := winipcfg.InterfaceFromLUID(lastLuid4)
+			if err != nil {
+				return err
+			}
+			if iface.Mtu > 0 {
+				mtu = iface.Mtu
+			}
+		}
+		if lastLuid6 != 0 {
+			iface, err := winipcfg.InterfaceFromLUID(lastLuid6)
+			if err != nil {
+				return err
+			}
+			if iface.Mtu > 0 && iface.Mtu < mtu {
+				mtu = iface.Mtu
+			}
+		}
+		if mtu > 0 && (lastMtu == 0 || lastMtu != mtu) {
+			//TODO: makesure wireguard-go knows about all MTU changes
+			iface, err := winipcfg.GetIpInterface(ourLuid, winipcfg.AF_INET)
+			if err != nil {
+				return err
+			}
+			iface.NlMtu = mtu - 80
+			err = iface.Set()
+			if err != nil {
+				return err
+			}
+			iface, err = winipcfg.GetIpInterface(ourLuid, winipcfg.AF_INET6)
+			if err != nil {
+				return err
+			}
+			iface.NlMtu = mtu - 80
+			err = iface.Set()
+			if err != nil {
+				return err
+			}
+			lastMtu = mtu
 		}
 		return nil
 	}
@@ -176,17 +221,17 @@ func configureInterface(conf *conf.Config, guid *windows.GUID) error {
 		return false
 	})
 	for i := 0; i < len(routes); i++ {
-		if i > 0 && routes[i].Metric == routes[i - 1].Metric &&
-			bytes.Equal(routes[i].NextHop, routes[i - 1].NextHop) &&
-			bytes.Equal(routes[i].Destination.IP, routes[i - 1].Destination.IP) &&
-			bytes.Equal(routes[i].Destination.Mask, routes[i - 1].Destination.Mask) {
+		if i > 0 && routes[i].Metric == routes[i-1].Metric &&
+			bytes.Equal(routes[i].NextHop, routes[i-1].NextHop) &&
+			bytes.Equal(routes[i].Destination.IP, routes[i-1].Destination.IP) &&
+			bytes.Equal(routes[i].Destination.Mask, routes[i-1].Destination.Mask) {
 			continue
 		}
 		deduplicatedRoutes[routeCount] = &routes[i]
 		routeCount++
 	}
 
-	err = iface.SetRoutes(deduplicatedRoutes)
+	err = iface.SetRoutes(deduplicatedRoutes[:routeCount])
 	if err != nil {
 		return nil
 	}
@@ -204,6 +249,9 @@ func configureInterface(conf *conf.Config, guid *windows.GUID) error {
 		ipif.UseAutomaticMetric = false
 		ipif.Metric = 0
 	}
+	if conf.Interface.Mtu > 0 {
+		ipif.NlMtu = uint32(conf.Interface.Mtu)
+	}
 	err = ipif.Set()
 	if err != nil {
 		return err
@@ -216,6 +264,9 @@ func configureInterface(conf *conf.Config, guid *windows.GUID) error {
 	if foundDefault6 {
 		ipif.UseAutomaticMetric = false
 		ipif.Metric = 0
+	}
+	if conf.Interface.Mtu > 0 {
+		ipif.NlMtu = uint32(conf.Interface.Mtu)
 	}
 	ipif.DadTransmits = 0
 	ipif.RouterDiscoveryBehavior = winipcfg.RouterDiscoveryDisabled
