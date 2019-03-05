@@ -188,7 +188,15 @@ func setupTunnelList() {
 	currentTunnel, _ := walk.NewTextEdit(currentTunnelContainer)
 	currentTunnel.SetReadOnly(true)
 
-	editTunnel, _ := walk.NewPushButton(currentTunnelContainer)
+	controlsContainer, _ := walk.NewComposite(currentTunnelContainer)
+	controlsContainer.SetLayout(walk.NewHBoxLayout())
+
+	toggleTunnel, _ := walk.NewCheckBox(controlsContainer)
+	toggleTunnel.SetText("Status: deactivated")
+
+	walk.NewHSpacer(controlsContainer)
+
+	editTunnel, _ := walk.NewPushButton(controlsContainer)
 	editTunnel.SetText("Edit")
 	editTunnel.Clicked().Attach(onEdit)
 }
