@@ -160,6 +160,8 @@ func setupTunnelList() {
 	// TODO: Maybe a Rebar looks better
 	listBoxButtonBar, _ := walk.NewComposite(listBoxContainer)
 	listBoxButtonBar.SetLayout(walk.NewHBoxLayout())
+	listBoxButtonBar.Layout().SetMargins(walk.Margins{})
+	listBoxButtonBar.Layout().SetSpacing(0)
 
 	// TODO: Trigger the menu on standard button click
 	addButton, _ := walk.NewSplitButton(listBoxButtonBar)
@@ -190,6 +192,7 @@ func setupTunnelList() {
 
 	controlsContainer, _ := walk.NewComposite(currentTunnelContainer)
 	controlsContainer.SetLayout(walk.NewHBoxLayout())
+	controlsContainer.Layout().SetMargins(walk.Margins{})
 
 	toggleTunnel, _ := walk.NewCheckBox(controlsContainer)
 	toggleTunnel.SetText("Status: deactivated")
