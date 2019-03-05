@@ -141,8 +141,6 @@ func setupTunnelList() {
 
 	// TODO: not greedy vertically
 	walk.NewListBox(listBoxContainer)
-	// TODO: Use a Rebar on the ListBox to tie them together
-	controls := mw.ToolBar()
 
 	importAction := walk.NewAction()
 	importAction.SetText("Import tunnels from file...")
@@ -153,10 +151,6 @@ func setupTunnelList() {
 	// TODO: How to tell it's a new tunnel
 	addAction.Triggered().Attach(onEdit)
 
-	deleteAction := walk.NewAction()
-	deleteAction.SetText("-")
-	deleteAction.Triggered().Attach(onDelete)
-
 	exportLogAction := walk.NewAction()
 	exportLogAction.SetText("Export log to file...")
 	// TODO: Triggered().Attach()
@@ -165,25 +159,34 @@ func setupTunnelList() {
 	exportTunnelAction.SetText("Export tunnels to zip...")
 	// TODO: Triggered().Attach()
 
-	addMenu, _ := walk.NewMenu()
-	addMenu.Actions().Add(addAction)
-	addMenu.Actions().Add(importAction)
+	// TODO: Maybe a Rebar looks better
+	listBoxButtonBar, _ := walk.NewComposite(listBoxContainer)
+	listBoxButtonBar.SetLayout(walk.NewHBoxLayout())
 
-	addMenuAction, _ := controls.Actions().AddMenu(addMenu)
-	addMenuAction.SetText("+")
+	// TODO: Trigger the menu on standard button click
+	addButton, _ := walk.NewSplitButton(listBoxButtonBar)
+	addButton.SetText("+")
+	addButton.Menu().Actions().Add(addAction)
+	addButton.Menu().Actions().Add(importAction)
 
-	settingsMenu, _ := walk.NewMenu()
-	settingsMenu.Actions().Add(exportLogAction)
-	settingsMenu.Actions().Add(exportTunnelAction)
+	deleteButton, _ := walk.NewPushButton(listBoxButtonBar)
+	deleteButton.SetText("-")
+	deleteButton.Clicked().Attach(onDelete)
 
-	settingsMenuAction, _ := controls.Actions().AddMenu(settingsMenu)
-	settingsMenuAction.SetText("S")
+	// TODO: Trigger the menu on standard button click
+	settingsButton, _ := walk.NewSplitButton(listBoxButtonBar)
+	settingsButton.SetText("S")
+	settingsButton.Menu().Actions().Add(exportLogAction)
+	settingsButton.Menu().Actions().Add(exportTunnelAction)
+
+	walk.NewHSpacer(listBoxButtonBar)
 
 	// Right side of main window: currently selected tunnel, edit
 
 	currentTunnelContainer, _ := walk.NewComposite(mw)
 	currentTunnelContainer.SetLayout(walk.NewVBoxLayout())
 
+	// TODO: Replace with ConfView
 	currentTunnel, _ := walk.NewTextEdit(currentTunnelContainer)
 	currentTunnel.SetReadOnly(true)
 
