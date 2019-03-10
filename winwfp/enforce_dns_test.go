@@ -8,8 +8,8 @@ package winwfp
 import (
 	"fmt"
 	"golang.org/x/sys/windows"
-"testing"
-"unsafe"
+	"testing"
+	"unsafe"
 )
 
 const (
@@ -121,17 +121,17 @@ func TestEnforceDns(t *testing.T) {
 		}}
 
 	filter := wtFwpmFilter0{
-		filterKey: windows.GUID{Data1: 0, Data2: 0, Data3: 0, Data4: [8]byte{0, 0, 0, 0, 0, 0, 0, 0}},
+		filterKey:   windows.GUID{Data1: 0, Data2: 0, Data3: 0, Data4: [8]byte{0, 0, 0, 0, 0, 0, 0, 0}},
 		displayData: *sessionDisplayData,
-		flags: 0,
-		layerKey: *GetFwpmLayerAleAuthConnectV4(),
+		flags:       0,
+		layerKey:    *GetFwpmLayerAleAuthConnectV4(),
 		subLayerKey: *wireguardDnsSublayer,
 		weight: wtFwpValue0{
 			_type: fwpUint8,
 			value: 15,
 		},
 		numFilterConditions: 2,
-		filterCondition: (*wtFwpmFilterCondition0)(unsafe.Pointer(&conditions2[0])),
+		filterCondition:     (*wtFwpmFilterCondition0)(unsafe.Pointer(&conditions2[0])),
 		action: wtFwpmAction0{
 			_type: FWP_ACTION_PERMIT,
 		},
