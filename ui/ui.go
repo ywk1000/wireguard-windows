@@ -31,11 +31,9 @@ But because this is pre-release software, we're not confident it's something you
 
 Would you like to quit WireGuard now? If not, you'll be nagged again in two minutes about the same thing.`
 
-var quit func()
-
 func nag() {
 	if walk.MsgBox(nil, "THANKS FOR REPORTING BUGS COME AGAIN ANOTHER DAY", nagMessage, walk.MsgBoxIconError|walk.MsgBoxYesNo|0x00001000) != walk.DlgCmdNo {
-		quit()
+		onQuit()
 	}
 	time.AfterFunc(time.Minute*2, nag)
 }
