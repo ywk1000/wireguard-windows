@@ -6,7 +6,10 @@
 package ui
 
 import (
+	"archive/zip"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/lxn/walk"
@@ -140,7 +143,7 @@ func (mtw *ManageTunnelsWindow) Show() {
 func (mtw *ManageTunnelsWindow) setTunnelState(tunnel *service.Tunnel, state service.TunnelState) {
 }
 
-func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) {
+func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) *conf.Config {
 	var (
 		title  string
 		config conf.Config
@@ -157,9 +160,6 @@ func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) {
 	}
 
 	dlg, _ := walk.NewDialog(mtw)
-
-	// TODO: Size does not seem to apply
-	dlg.SetSize(walk.Size{900, 800})
 	dlg.SetIcon(mtw.icon)
 	dlg.SetTitle(title)
 	dlg.SetLayout(walk.NewGridLayout())
@@ -213,7 +213,7 @@ func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) {
 
 	cancelButton, _ := walk.NewPushButton(buttonsContainer)
 	cancelButton.SetText("Cancel")
-	cancelButton.Clicked().Attach(func() { dlg.Cancel() })
+	cancelButton.Clicked().Attach(dlg.Cancel)
 
 	saveButton, _ := walk.NewPushButton(buttonsContainer)
 	saveButton.SetText("Save")
@@ -225,25 +225,132 @@ func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) {
 	dlg.SetCancelButton(cancelButton)
 	dlg.SetDefaultButton(saveButton)
 
-	// result is either walk.DlgCmdOK or walk.DlgCmdCancel
 	if dlg.Run() == walk.DlgCmdOK {
-		// can we fetch the label values here or did they get destroyed?
+		// Save
+	}
+
+	return &conf.Config{}
+}
+
+// importFiles tries to import a list of configurations.
+func (mtw *ManageTunnelsWindow) importFiles(paths []string) {
+	type unparsedConfig struct {
+		Name   string
+		Config string
+	}
+
+	var (
+		unparsedConfigs []unparsedConfig
+		lastErr         error
+	)
+
+	// Note: other versions of WireGuard start with all .zip files, then all .conf files.
+	// To reproduce that if needed, inverse-sort the array.
+	for _, path := range paths {
+		switch filepath.Ext(path) {
+		case ".conf":
+			textConfig, err := ioutil.ReadFile(path)
+			if err != nil {
+				lastErr = err
+				continue
+			}
+			unparsedConfigs = append(unparsedConfigs, unparsedConfig{Name: strings.TrimSuffix(filepath.Base(path), ".conf"), Config: string(textConfig)})
+		case ".zip":
+			// 1 .conf + 1 error .zip edge case?
+			r, err := zip.OpenReader(path)
+			if err != nil {
+				lastErr = err
+				continue
+			}
+
+			for _, f := range r.File {
+				if filepath.Ext(f.Name) != ".conf" {
+					continue
+				}
+
+				rc, err := f.Open()
+				if err != nil {
+					lastErr = err
+					continue
+				}
+				textConfig, err := ioutil.ReadAll(rc)
+				rc.Close()
+				if err != nil {
+					lastErr = err
+					continue
+				}
+				unparsedConfigs = append(unparsedConfigs, unparsedConfig{Name: strings.TrimSuffix(filepath.Base(f.Name), ".conf"), Config: string(textConfig)})
+			}
+
+			r.Close()
+		}
+	}
+
+	if lastErr != nil || unparsedConfigs == nil {
+		walk.MsgBox(mtw, "Error", fmt.Sprintf("Could not parse some files: %v", lastErr), walk.MsgBoxIconWarning)
+		return
+	}
+
+	var (
+		configs []*conf.Config
+	)
+
+	for _, unparsedConfig := range unparsedConfigs {
+		config, err := conf.FromWgQuick(unparsedConfig.Config, unparsedConfig.Name)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		configs = append(configs, config)
+	}
+
+	m, n := len(configs), len(unparsedConfigs)
+	switch {
+	case n == 1 && m != n:
+		walk.MsgBox(mtw, "Error", fmt.Sprintf("Could not parse some files: %v", lastErr), walk.MsgBoxIconWarning)
+	case n == 1 && m == n:
+		// Select tunnel
+	case m == n:
+		walk.MsgBox(mtw, "Imported tunnels", fmt.Sprintf("Imported %d tunnels", m), walk.MsgBoxOK)
+	case m != n:
+		walk.MsgBox(mtw, "Imported tunnels", fmt.Sprintf("Imported %d of %d tunnels", m, n), walk.MsgBoxIconWarning)
+	default:
+		panic("unreachable case")
 	}
 }
 
 // Handlers
 
 func (mtw *ManageTunnelsWindow) onEditTunnel() {
-	mtw.runTunnelEdit(mtw.currentTunnel)
+	oldName := mtw.currentTunnel.Name
+	if config := mtw.runTunnelEdit(mtw.currentTunnel); config != nil {
+		// TODO: is there a tunnel rename call?
+		if oldName != config.Name {
+			// Delete old one
+			// mtw.currentTunnel.Delete()
+		}
+		// Save new one
+		// config.Create()
+		// Update the currentTunnel to use the new config (careful to keep ordering)
+	}
 }
 
 func (mtw *ManageTunnelsWindow) onAddTunnel() {
-	mtw.runTunnelEdit(nil)
+	if config := mtw.runTunnelEdit(nil); config != nil {
+		// Save new
+	}
 }
 
 func (mtw *ManageTunnelsWindow) onDelete() {
-	// result is either walk.IDNO or walk.IDYES
-	walk.MsgBox(mtw, fmt.Sprintf(`Delete "%s"?`, "tunnel name"), fmt.Sprintf(`Are you sure you want to delete "%s"`, "tunnel name"), walk.MsgBoxYesNo|walk.MsgBoxIconWarning)
+	if mtw.currentTunnel == nil {
+		return
+	}
+
+	if walk.MsgBox(mtw, fmt.Sprintf(`Delete "%s"?`, mtw.currentTunnel.Name), fmt.Sprintf(`Are you sure you want to delete "%s"`, "tunnel name"), walk.MsgBoxYesNo|walk.MsgBoxIconWarning) != walk.DlgCmdOK {
+		return
+	}
+
+	mtw.currentTunnel.Delete()
 }
 
 func (mtw *ManageTunnelsWindow) onImport() {
@@ -256,5 +363,5 @@ func (mtw *ManageTunnelsWindow) onImport() {
 		return
 	}
 
-	walk.MsgBox(mtw, "Must import", strings.Join(dlg.FilePaths, ", "), walk.MsgBoxOK)
+	mtw.importFiles(dlg.FilePaths)
 }
