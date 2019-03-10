@@ -203,7 +203,6 @@ func bindService() {
 			// pb.SetEnabled(true)
 			tray.SetToolTip("WireGuard: Activated")
 			if showNotifications {
-				//TODO: ShowCustom with right icon
 				tray.ShowInfo("WireGuard Activated", fmt.Sprintf("The %s tunnel has been activated.", tunnel.Name))
 			}
 		case service.TunnelStopping:
@@ -221,7 +220,6 @@ func bindService() {
 			// pb.SetEnabled(true)
 			tray.SetToolTip("WireGuard: Deactivated")
 			if showNotifications {
-				//TODO: ShowCustom with right icon
 				tray.ShowInfo("WireGuard Deactivated", fmt.Sprintf("The %s tunnel has been deactivated.", tunnel.Name))
 			}
 		}
