@@ -38,6 +38,7 @@ func onQuit() {
 func onManageTunnels() {
 	mw.Show()
 	win.SetForegroundWindow(mw.Handle())
+	win.BringWindowToTop(mw.Handle())
 }
 
 func onImport() {

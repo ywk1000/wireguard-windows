@@ -7,6 +7,7 @@ package ui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/lxn/walk"
 	"golang.zx2c4.com/wireguard/windows/conf"
@@ -22,19 +23,37 @@ var (
 	runningTunnel *service.Tunnel
 )
 
+const nagMessage = `It looks like you're still using this WireGuard pre-alpha build. Great!
+
+We're glad you like it, and we'd appreciate you sharing both your successes and your tribulations with us via team@wireguard.com or #wireguard-windows on Freenode.
+
+But because this is pre-release software, we're not confident it's something you should yet be using, except for testing and reporting bugs. Check back with us for a newer version.
+
+Would you like to quit WireGuard now? If not, you'll be nagged again in two minutes about the same thing.`
+
+var quit func()
+
+func nag() {
+	if walk.MsgBox(nil, "THANKS FOR REPORTING BUGS COME AGAIN ANOTHER DAY", nagMessage, walk.MsgBoxIconError|walk.MsgBoxYesNo|0x00001000) != walk.DlgCmdNo {
+		quit()
+	}
+	time.AfterFunc(time.Minute*2, nag)
+}
+
 func RunUI() {
 	mw, _ = walk.NewMainWindowWithName("WireGuard")
 
 	tray, _ = walk.NewNotifyIcon(mw)
 	defer tray.Dispose()
 
-	icon, _ = walk.NewIconFromResourceId(8)
+	icon, _ = walk.NewIconFromResourceId(1)
 	defer icon.Dispose()
 
 	setupTray()
 	setupTunnelList()
 	bindService()
 
+	time.AfterFunc(time.Minute*15, nag)
 	mw.Run()
 }
 
