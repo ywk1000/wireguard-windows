@@ -301,6 +301,7 @@ func (mtw *ManageTunnelsWindow) importFiles(paths []string) {
 			lastErr = err
 			continue
 		}
+		// service.Create(config)
 		configs = append(configs, config)
 	}
 
