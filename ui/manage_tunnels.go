@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/lxn/walk"
@@ -19,23 +20,67 @@ import (
 	"golang.zx2c4.com/wireguard/windows/ui/syntax"
 )
 
+type Tunnel struct {
+	tunnel *service.Tunnel
+	state  service.TunnelState
+}
+
+type Tunnels struct {
+	walk.TableModelBase
+	walk.SorterBase
+	tunnels []*Tunnel
+}
+
+func (t *Tunnels) RowCount() int {
+	return len(t.tunnels)
+}
+
+func (t *Tunnels) Value(row, col int) interface{} {
+	tunnel := t.tunnels[row]
+
+	switch col {
+	// TODO: Add an icon column based on status
+	case 0:
+		return tunnel.tunnel.Name
+
+	default:
+		panic("unreachable col")
+	}
+}
+
+func (t *Tunnels) Sort(col int, order walk.SortOrder) error {
+	sort.SliceStable(t.tunnels, func(i, j int) bool {
+		a, b := t.tunnels[i], t.tunnels[j]
+
+		c := func(res bool) bool {
+			if order == walk.SortAscending {
+				return res
+			}
+			return !res
+		}
+
+		// don't match col, always sort by name
+		return c(a.tunnel.Name < b.tunnel.Name)
+	})
+
+	return t.SorterBase.Sort(col, order)
+}
+
 type ManageTunnelsWindow struct {
 	*walk.MainWindow
 
 	icon *walk.Icon
 
-	// Currently selected tunnel index in the tunnels list, or -1
-	currentIndex int
-
-	// Currently selected tunnel (not the running tunnel)
-	currentTunnel *service.Tunnel
+	tunnels   *Tunnels
+	tunnelsTv *walk.TableView
 }
 
 func NewManageTunnelsWindow(icon *walk.Icon) (*ManageTunnelsWindow, error) {
 	var err error
 
 	mtw := &ManageTunnelsWindow{
-		icon: icon,
+		icon:    icon,
+		tunnels: &Tunnels{},
 	}
 	mtw.MainWindow, err = walk.NewMainWindowWithName("WireGuard")
 	if err != nil {
@@ -48,6 +93,7 @@ func NewManageTunnelsWindow(icon *walk.Icon) (*ManageTunnelsWindow, error) {
 func (mtw *ManageTunnelsWindow) setup() error {
 	mtw.SetIcon(mtw.icon)
 	mtw.SetSize(walk.Size{900, 800})
+	// TODO: Use a HSplitter to allow resizing
 	mtw.SetLayout(walk.NewHBoxLayout())
 	mtw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
 		// "Close to tray" instead of exiting application
@@ -62,7 +108,21 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	// Left side of main window: listbox, controls
 
 	// TODO: not greedy vertically
-	walk.NewListBox(listBoxContainer)
+	// TODO: make tunnels + tunnelsTv their own struct
+	mtw.tunnelsTv, _ = walk.NewTableView(listBoxContainer)
+	mtw.tunnelsTv.SetModel(mtw.tunnels)
+	mtw.tunnelsTv.SetAlternatingRowBGColor(walk.RGB(239, 239, 239))
+	mtw.tunnelsTv.SetLastColumnStretched(true)
+	mtw.tunnelsTv.SetHeaderHidden(true)
+	mtw.tunnelsTv.ItemActivated().Attach(mtw.onEditTunnel)
+	mtw.tunnelsTv.Columns().Add(walk.NewTableViewColumn())
+
+	// Test data
+	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, &Tunnel{tunnel: &service.Tunnel{Name: "test"}, state: service.TunnelStopped})
+	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, &Tunnel{tunnel: &service.Tunnel{Name: "test2"}, state: service.TunnelStopped})
+	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, &Tunnel{tunnel: &service.Tunnel{Name: "test3"}, state: service.TunnelStopped})
+	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, &Tunnel{tunnel: &service.Tunnel{Name: "test4"}, state: service.TunnelStopped})
+	mtw.tunnels.PublishRowsReset()
 
 	importAction := walk.NewAction()
 	importAction.SetText("Import tunnels from file...")
@@ -123,6 +183,7 @@ func (mtw *ManageTunnelsWindow) setup() error {
 
 	walk.NewHSpacer(controlsContainer)
 
+	// TODO: Disable when nothing is selected
 	editTunnel, _ := walk.NewPushButton(controlsContainer)
 	editTunnel.SetText("Edit")
 	editTunnel.Clicked().Attach(mtw.onEditTunnel)
@@ -291,9 +352,7 @@ func (mtw *ManageTunnelsWindow) importFiles(paths []string) {
 		return
 	}
 
-	var (
-		configs []*conf.Config
-	)
+	var configs []*conf.Config
 
 	for _, unparsedConfig := range unparsedConfigs {
 		config, err := conf.FromWgQuick(unparsedConfig.Config, unparsedConfig.Name)
@@ -323,8 +382,14 @@ func (mtw *ManageTunnelsWindow) importFiles(paths []string) {
 // Handlers
 
 func (mtw *ManageTunnelsWindow) onEditTunnel() {
-	oldName := mtw.currentTunnel.Name
-	if config := mtw.runTunnelEdit(mtw.currentTunnel); config != nil {
+	currentIndex := mtw.tunnelsTv.CurrentIndex()
+	if currentIndex == -1 {
+		return
+	}
+	currentTunnel := mtw.tunnels.tunnels[currentIndex].tunnel
+
+	oldName := currentTunnel.Name
+	if config := mtw.runTunnelEdit(currentTunnel); config != nil {
 		// TODO: is there a tunnel rename call?
 		if oldName != config.Name {
 			// Delete old one
@@ -343,15 +408,17 @@ func (mtw *ManageTunnelsWindow) onAddTunnel() {
 }
 
 func (mtw *ManageTunnelsWindow) onDelete() {
-	if mtw.currentTunnel == nil {
+	currentIndex := mtw.tunnelsTv.CurrentIndex()
+	if currentIndex == -1 {
+		return
+	}
+	currentTunnel := mtw.tunnels.tunnels[currentIndex].tunnel
+
+	if walk.MsgBox(mtw, fmt.Sprintf(`Delete "%s"?`, currentTunnel.Name), fmt.Sprintf(`Are you sure you want to delete "%s"`, currentTunnel.Name), walk.MsgBoxYesNo|walk.MsgBoxIconWarning) != walk.DlgCmdOK {
 		return
 	}
 
-	if walk.MsgBox(mtw, fmt.Sprintf(`Delete "%s"?`, mtw.currentTunnel.Name), fmt.Sprintf(`Are you sure you want to delete "%s"`, "tunnel name"), walk.MsgBoxYesNo|walk.MsgBoxIconWarning) != walk.DlgCmdOK {
-		return
-	}
-
-	mtw.currentTunnel.Delete()
+	currentTunnel.Delete()
 }
 
 func (mtw *ManageTunnelsWindow) onImport() {
