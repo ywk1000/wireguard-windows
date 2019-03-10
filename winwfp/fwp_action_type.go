@@ -1,0 +1,29 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Copyright (C) 2019 WireGuard LLC. All Rights Reserved.
+ */
+
+package winwfp
+
+type FwpActionFlag uint32
+
+const (
+	FWP_ACTION_FLAG_TERMINATING     FwpActionFlag = 0x00001000
+	FWP_ACTION_FLAG_NON_TERMINATING FwpActionFlag = 0x00002000
+	FWP_ACTION_FLAG_CALLOUT         FwpActionFlag = 0x00004000
+)
+
+// FWP_ACTION_TYPE defined in fwptypes.h
+type FwpActionType uint32
+
+const (
+	FWP_ACTION_BLOCK               FwpActionType = FwpActionType(0x00000001 | FWP_ACTION_FLAG_TERMINATING)
+	FWP_ACTION_PERMIT              FwpActionType = FwpActionType(0x00000002 | FWP_ACTION_FLAG_TERMINATING)
+	FWP_ACTION_CALLOUT_TERMINATING FwpActionType = FwpActionType(0x00000003 | FWP_ACTION_FLAG_CALLOUT | FWP_ACTION_FLAG_TERMINATING)
+	FWP_ACTION_CALLOUT_INSPECTION  FwpActionType = FwpActionType(0x00000004 | FWP_ACTION_FLAG_CALLOUT | FWP_ACTION_FLAG_NON_TERMINATING)
+	FWP_ACTION_CALLOUT_UNKNOWN     FwpActionType = FwpActionType(0x00000005 | FWP_ACTION_FLAG_CALLOUT)
+	FWP_ACTION_CONTINUE            FwpActionType = FwpActionType(0x00000006 | FWP_ACTION_FLAG_NON_TERMINATING)
+	//FWP_ACTION_NONE                FwpActionType = 0x00000007
+	//FWP_ACTION_NONE_NO_MATCH       FwpActionType = 0x00000008
+	//FWP_ACTION_BITMAP_INDEX_SET    FwpActionType = 0x00000009
+)
