@@ -1,0 +1,22 @@
+logic:
+
+- manage_tunnels button dropdown not activated on button click
+- Tunnel saving validation and actual saving
+- Tunnel stats view in manage_tunnels
+- Export tunnel + log
+- Handling tunnel state updates in main window
+- Handling tunnel state updates in notify icon
+
+styling:
+
+- button bar in manage_tunnels
+- invalid min size for edit popup
+- stats view
+- tunnels list
+
+extra:
+
+- wordings for titles
+- wordings for about box
+- default template for new tunnel
+- default name for new tunnel
