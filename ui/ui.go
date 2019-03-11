@@ -121,6 +121,7 @@ func RunUI() {
 		}
 	}()
 	showRunningView := func(on bool) {
+		mw.SetSuspended(true)
 		cv.SetVisible(on)
 		cv.SetEnabled(on)
 		se.SetVisible(!on)
@@ -128,7 +129,7 @@ func RunUI() {
 		if on {
 			updateConfView()
 		}
-		mw.Invalidate()
+		mw.SetSuspended(false)
 	}
 
 	pb, _ := walk.NewPushButton(mw)
