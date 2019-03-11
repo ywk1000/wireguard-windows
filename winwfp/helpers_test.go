@@ -33,15 +33,15 @@ func TestGuidHelpers(t *testing.T) {
 
 func TestGetModuleFileNameWWrapper(t *testing.T) {
 
-	currentFile, err := getModuleFileNameWWrapper(0)
+	currentFile, err := GetModuleFileNameWWrapper(0)
 
 	if err != nil {
-		t.Errorf("getModuleFileNameWWrapper() returned an error: %v", err)
+		t.Errorf("GetModuleFileNameWWrapper() returned an error: %v", err)
 		return
 	}
 
 	if len(currentFile) < 1 {
-		t.Error("Current file name is an empty string although getModuleFileNameWWrapper() has executed successfully.")
+		t.Error("Current file name is an empty string although GetModuleFileNameWWrapper() has executed successfully.")
 		return
 	}
 
@@ -50,14 +50,14 @@ func TestGetModuleFileNameWWrapper(t *testing.T) {
 
 func TestGetCurrentAppId(t *testing.T) {
 
-	appId, err := getCurrentAppId()
+	appId, err := GetCurrentAppId()
 
 	if err != nil {
-		t.Errorf("getCurrentAppId() returned an error: %v", err)
+		t.Errorf("GetCurrentAppId() returned an error: %v", err)
 		return
 	}
 
 	if appId == nil {
-		t.Error("getCurrentAppId() returned nil.")
+		t.Error("GetCurrentAppId() returned nil.")
 	}
 }

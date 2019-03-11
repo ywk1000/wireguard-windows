@@ -9,12 +9,12 @@ import "unsafe"
 
 // FWP_BYTE_BLOB defined in fwptypes.h
 // (https://docs.microsoft.com/en-us/windows/desktop/api/fwptypes/ns-fwptypes-fwp_byte_blob_)
-type wtFwpByteBlob struct {
+type FwpByteBlob struct {
 	size uint32
 	data *uint8
 }
 
-func (bb *wtFwpByteBlob) toSlice() []uint8 {
+func (bb *FwpByteBlob) toSlice() []uint8 {
 
 	if bb == nil {
 		return nil
@@ -34,4 +34,10 @@ func (bb *wtFwpByteBlob) toSlice() []uint8 {
 	}
 
 	return bbSlice
+}
+
+func (bb *FwpByteBlob) Free() {
+	if bb != nil {
+		fwpmFreeMemory0(unsafe.Pointer(&bb))
+	}
 }

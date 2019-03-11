@@ -6,9 +6,9 @@
 package winwfp
 
 const (
-	wtFwpByteBlob_Size = 8
+	fwpByteBlob_Size = 8
 
-	wtFwpByteBlob_data_Offset = 4
+	fwpByteBlob_data_Offset = 4
 
 	wtFwpConditionValue0_Size = 8
 

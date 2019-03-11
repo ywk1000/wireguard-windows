@@ -13,6 +13,6 @@ type wtFwpProvider0 struct {
 	providerKey  windows.GUID // Windows type: GUID
 	displayData  wtFwpmDisplayData0
 	flags        uint32
-	providerData wtFwpByteBlob
+	providerData FwpByteBlob
 	serviceName  *uint16 // Windows type: *wchar_t
 }

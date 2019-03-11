@@ -29,5 +29,8 @@ package winwfp
 // https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmgetappidfromfilename0
 //sys	fwpmGetAppIdFromFileName0(fileName *uint16, appId unsafe.Pointer) (result uint32) = fwpuclnt.FwpmGetAppIdFromFileName0
 
+// https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmfreememory0
+//sys	fwpmFreeMemory0(p unsafe.Pointer) = fwpuclnt.FwpmFreeMemory0
+
 // https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmfilteradd0
 //sys	fwpmFilterAdd0(engineHandle uintptr, filter *wtFwpmFilter0, sd uintptr, id *uint64) (result uint32) = fwpuclnt.FwpmFilterAdd0

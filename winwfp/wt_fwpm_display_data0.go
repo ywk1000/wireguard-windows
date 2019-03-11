@@ -33,15 +33,3 @@ func createWtFwpmDisplayData0(name, description string) (*wtFwpmDisplayData0, er
 		description: descriptionPtr,
 	}, nil
 }
-
-func (dd *wtFwpmDisplayData0) toFwpmDisplayData() *FwpmDisplayData {
-
-	if dd == nil {
-		return nil
-	}
-
-	return &FwpmDisplayData{
-		Name:        wcharToString(dd.name),
-		Description: wcharToString(dd.description),
-	}
-}

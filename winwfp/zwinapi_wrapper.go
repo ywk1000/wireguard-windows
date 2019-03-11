@@ -48,6 +48,7 @@ var (
 	procFwpmSubLayerAdd0          = modfwpuclnt.NewProc("FwpmSubLayerAdd0")
 	procGetModuleFileNameW        = modKernel32.NewProc("GetModuleFileNameW")
 	procFwpmGetAppIdFromFileName0 = modfwpuclnt.NewProc("FwpmGetAppIdFromFileName0")
+	procFwpmFreeMemory0           = modfwpuclnt.NewProc("FwpmFreeMemory0")
 	procFwpmFilterAdd0            = modfwpuclnt.NewProc("FwpmFilterAdd0")
 )
 
@@ -96,6 +97,11 @@ func getModuleFileNameW(hModule uintptr, lpFilename *uint16, nSize uint32) (resu
 func fwpmGetAppIdFromFileName0(fileName *uint16, appId unsafe.Pointer) (result uint32) {
 	r0, _, _ := syscall.Syscall(procFwpmGetAppIdFromFileName0.Addr(), 2, uintptr(unsafe.Pointer(fileName)), uintptr(appId), 0)
 	result = uint32(r0)
+	return
+}
+
+func fwpmFreeMemory0(p unsafe.Pointer) {
+	syscall.Syscall(procFwpmFreeMemory0.Addr(), 1, uintptr(p), 0, 0)
 	return
 }
 

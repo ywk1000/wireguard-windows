@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"golang.org/x/sys/windows"
-	"os"
 	"strconv"
 	"unsafe"
 )
@@ -41,6 +40,10 @@ func boolToUint8(val bool) uint8 {
 	}
 }
 
+func getZeroGuid() *windows.GUID {
+	return &windows.GUID{Data1: 0, Data2: 0, Data3: 0, Data4: [8]byte{0, 0, 0, 0, 0, 0, 0, 0}}
+}
+
 func guidToString(guid *windows.GUID) string {
 	if guid == nil {
 		return "<nil>"
@@ -50,6 +53,7 @@ func guidToString(guid *windows.GUID) string {
 	}
 }
 
+// TODO: For temporary usage. Delete when not needed anymore.
 func stringToGuid(guid string) (*windows.GUID, error) {
 
 	switch len(guid) {
@@ -113,57 +117,4 @@ func stringToGuid(guid string) (*windows.GUID, error) {
 		Data3: uint16(data3),
 		Data4: data4,
 	}, nil
-}
-
-func getModuleFileNameWWrapper(module uintptr) (string, error) {
-
-	moduleFileNameLength := uint32(10000)
-
-	for {
-		buffer := make([]uint16, moduleFileNameLength, moduleFileNameLength)
-
-		result := getModuleFileNameW(module, (*uint16)(unsafe.Pointer(&buffer[0])), moduleFileNameLength)
-
-		if result == 0 {
-			return "", os.NewSyscallError("Kernel32.GetModuleFileNameW", windows.GetLastError())
-		}
-
-		if result < moduleFileNameLength {
-
-			buffer[result] = 0
-
-			return windows.UTF16ToString(buffer), nil
-		}
-
-		if windows.GetLastError() == windows.ERROR_INSUFFICIENT_BUFFER {
-			moduleFileNameLength += 10000
-		} else {
-			return windows.UTF16ToString(buffer), nil
-		}
-	}
-}
-
-func getCurrentAppId() (*wtFwpByteBlob, error) {
-
-	currentFile, err := getModuleFileNameWWrapper(0)
-
-	if err != nil {
-		return nil, err
-	}
-
-	curFilePtr, err := windows.UTF16PtrFromString(currentFile)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var appId *wtFwpByteBlob = nil
-
-	result := fwpmGetAppIdFromFileName0(curFilePtr, unsafe.Pointer(&appId))
-
-	if result == 0 {
-		return appId, nil
-	} else {
-		return nil, os.NewSyscallError("fwpuclnt.FwpmGetAppIdFromFileName0", windows.Errno(result))
-	}
 }

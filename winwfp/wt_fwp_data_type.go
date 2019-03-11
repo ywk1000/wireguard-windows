@@ -12,88 +12,88 @@ import "fmt"
 type wtFwpDataType uint
 
 const (
-	fwpEmpty                      wtFwpDataType = 0                                 // FWP_EMPTY
-	fwpUint8                      wtFwpDataType = fwpEmpty + 1                      // FWP_UINT8
-	fwpUint16                     wtFwpDataType = fwpUint8 + 1                      // FWP_UINT16
-	fwpUint32                     wtFwpDataType = fwpUint16 + 1                     // FWP_UINT32
-	fwpUint64                     wtFwpDataType = fwpUint32 + 1                     // FWP_UINT64
-	fwpInt8                       wtFwpDataType = fwpUint64 + 1                     // FWP_INT8
-	fwpInt16                      wtFwpDataType = fwpInt8 + 1                       // FWP_INT16
-	fwpInt32                      wtFwpDataType = fwpInt16 + 1                      // FWP_INT32
-	fwpInt64                      wtFwpDataType = fwpInt32 + 1                      // FWP_INT64
-	fwpFloat                      wtFwpDataType = fwpInt64 + 1                      // FWP_FLOAT
-	fwpDouble                     wtFwpDataType = fwpFloat + 1                      // FWP_DOUBLE
-	fwpByteArray16Type            wtFwpDataType = fwpDouble + 1                     // FWP_BYTE_ARRAY16_TYPE
-	fwpByteBlobType               wtFwpDataType = fwpByteArray16Type + 1            // FWP_BYTE_BLOB_TYPE
-	fwpSid                        wtFwpDataType = fwpByteBlobType + 1               // FWP_SID
-	fwpSecurityDescriptorType     wtFwpDataType = fwpSid + 1                        // FWP_SECURITY_DESCRIPTOR_TYPE
-	fwpTokenInformationType       wtFwpDataType = fwpSecurityDescriptorType + 1     // FWP_TOKEN_INFORMATION_TYPE
-	fwpTokenAccessInformationType wtFwpDataType = fwpTokenInformationType + 1       // FWP_TOKEN_ACCESS_INFORMATION_TYPE
-	fwpUnicodeStringType          wtFwpDataType = fwpTokenAccessInformationType + 1 // FWP_UNICODE_STRING_TYPE
-	fwpByteArray6Type             wtFwpDataType = fwpUnicodeStringType + 1          // FWP_BYTE_ARRAY6_TYPE
-	fwpBitmapIndexType            wtFwpDataType = fwpByteArray6Type + 1             // FWP_BITMAP_INDEX_TYPE
-	fwpBitmapArray64Type          wtFwpDataType = fwpBitmapIndexType + 1            // FWP_BITMAP_ARRAY64_TYPE
-	fwpSingleDataTypeMax          wtFwpDataType = 0xff                              // FWP_SINGLE_DATA_TYPE_MAX
-	fwpV4AddrMask                 wtFwpDataType = fwpSingleDataTypeMax + 1          // FWP_V4_ADDR_MASK
-	fwpV6AddrMask                 wtFwpDataType = fwpV4AddrMask + 1                 // FWP_V6_ADDR_MASK
-	fwpRangeType                  wtFwpDataType = fwpV6AddrMask + 1                 // FWP_RANGE_TYPE
-	fwpDataTypeMax                wtFwpDataType = fwpRangeType + 1                  // FWP_DATA_TYPE_MAX
+	FWP_EMPTY                         wtFwpDataType = 0
+	FWP_UINT8                         wtFwpDataType = FWP_EMPTY + 1
+	FWP_UINT16                        wtFwpDataType = FWP_UINT8 + 1
+	FWP_UINT32                        wtFwpDataType = FWP_UINT16 + 1
+	FWP_UINT64                        wtFwpDataType = FWP_UINT32 + 1
+	FWP_INT8                          wtFwpDataType = FWP_UINT64 + 1
+	FWP_INT16                         wtFwpDataType = FWP_INT8 + 1
+	FWP_INT32                         wtFwpDataType = FWP_INT16 + 1
+	FWP_INT64                         wtFwpDataType = FWP_INT32 + 1
+	FWP_FLOAT                         wtFwpDataType = FWP_INT64 + 1
+	FWP_DOUBLE                        wtFwpDataType = FWP_FLOAT + 1
+	FWP_BYTE_ARRAY16_TYPE             wtFwpDataType = FWP_DOUBLE + 1
+	FWP_BYTE_BLOB_TYPE                wtFwpDataType = FWP_BYTE_ARRAY16_TYPE + 1
+	FWP_SID                           wtFwpDataType = FWP_BYTE_BLOB_TYPE + 1
+	FWP_SECURITY_DESCRIPTOR_TYPE      wtFwpDataType = FWP_SID + 1
+	FWP_TOKEN_INFORMATION_TYPE        wtFwpDataType = FWP_SECURITY_DESCRIPTOR_TYPE + 1
+	FWP_TOKEN_ACCESS_INFORMATION_TYPE wtFwpDataType = FWP_TOKEN_INFORMATION_TYPE + 1
+	FWP_UNICODE_STRING_TYPE           wtFwpDataType = FWP_TOKEN_ACCESS_INFORMATION_TYPE + 1
+	FWP_BYTE_ARRAY6_TYPE              wtFwpDataType = FWP_UNICODE_STRING_TYPE + 1
+	FWP_BITMAP_INDEX_TYPE             wtFwpDataType = FWP_BYTE_ARRAY6_TYPE + 1
+	FWP_BITMAP_ARRAY64_TYPE           wtFwpDataType = FWP_BITMAP_INDEX_TYPE + 1
+	FWP_SINGLE_DATA_TYPE_MAX          wtFwpDataType = 0xff
+	FWP_V4_ADDR_MASK                  wtFwpDataType = FWP_SINGLE_DATA_TYPE_MAX + 1
+	FWP_V6_ADDR_MASK                  wtFwpDataType = FWP_V4_ADDR_MASK + 1
+	FWP_RANGE_TYPE                    wtFwpDataType = FWP_V6_ADDR_MASK + 1
+	FWP_DATA_TYPE_MAX                 wtFwpDataType = FWP_RANGE_TYPE + 1
 )
 
 func (dt wtFwpDataType) String() string {
 	switch dt {
-	case fwpEmpty:
-		return "fwpEmpty"
-	case fwpUint8:
-		return "fwpUint8"
-	case fwpUint16:
-		return "fwpUint16"
-	case fwpUint32:
-		return "fwpUint32"
-	case fwpUint64:
-		return "fwpUint64"
-	case fwpInt8:
-		return "fwpInt8"
-	case fwpInt16:
-		return "fwpInt16"
-	case fwpInt32:
-		return "fwpInt32"
-	case fwpInt64:
-		return "fwpInt64"
-	case fwpFloat:
-		return "fwpFloat"
-	case fwpDouble:
-		return "fwpDouble"
-	case fwpByteArray16Type:
-		return "fwpByteArray16Type"
-	case fwpByteBlobType:
-		return "fwpByteBlobType"
-	case fwpSid:
-		return "fwpSid"
-	case fwpSecurityDescriptorType:
-		return "fwpSecurityDescriptorType"
-	case fwpTokenInformationType:
-		return "fwpTokenInformationType"
-	case fwpTokenAccessInformationType:
-		return "fwpTokenAccessInformationType"
-	case fwpUnicodeStringType:
-		return "fwpUnicodeStringType"
-	case fwpByteArray6Type:
-		return "fwpByteArray6Type"
-	case fwpBitmapIndexType:
-		return "fwpBitmapIndexType"
-	case fwpBitmapArray64Type:
-		return "fwpBitmapArray64Type"
-	case fwpSingleDataTypeMax:
-		return "fwpSingleDataTypeMax"
-	case fwpV4AddrMask:
-		return "fwpV4AddrMask"
-	case fwpV6AddrMask:
-		return "fwpV6AddrMask"
-	case fwpRangeType:
-		return "fwpRangeType"
-	case fwpDataTypeMax:
-		return "fwpDataTypeMax"
+	case FWP_EMPTY:
+		return "FWP_EMPTY"
+	case FWP_UINT8:
+		return "FWP_UINT8"
+	case FWP_UINT16:
+		return "FWP_UINT16"
+	case FWP_UINT32:
+		return "FWP_UINT32"
+	case FWP_UINT64:
+		return "FWP_UINT64"
+	case FWP_INT8:
+		return "FWP_INT8"
+	case FWP_INT16:
+		return "FWP_INT16"
+	case FWP_INT32:
+		return "FWP_INT32"
+	case FWP_INT64:
+		return "FWP_INT64"
+	case FWP_FLOAT:
+		return "FWP_FLOAT"
+	case FWP_DOUBLE:
+		return "FWP_DOUBLE"
+	case FWP_BYTE_ARRAY16_TYPE:
+		return "FWP_BYTE_ARRAY16_TYPE"
+	case FWP_BYTE_BLOB_TYPE:
+		return "FWP_BYTE_BLOB_TYPE"
+	case FWP_SID:
+		return "FWP_SID"
+	case FWP_SECURITY_DESCRIPTOR_TYPE:
+		return "FWP_SECURITY_DESCRIPTOR_TYPE"
+	case FWP_TOKEN_INFORMATION_TYPE:
+		return "FWP_TOKEN_INFORMATION_TYPE"
+	case FWP_TOKEN_ACCESS_INFORMATION_TYPE:
+		return "FWP_TOKEN_ACCESS_INFORMATION_TYPE"
+	case FWP_UNICODE_STRING_TYPE:
+		return "FWP_UNICODE_STRING_TYPE"
+	case FWP_BYTE_ARRAY6_TYPE:
+		return "FWP_BYTE_ARRAY6_TYPE"
+	case FWP_BITMAP_INDEX_TYPE:
+		return "FWP_BITMAP_INDEX_TYPE"
+	case FWP_BITMAP_ARRAY64_TYPE:
+		return "FWP_BITMAP_ARRAY64_TYPE"
+	case FWP_SINGLE_DATA_TYPE_MAX:
+		return "FWP_SINGLE_DATA_TYPE_MAX"
+	case FWP_V4_ADDR_MASK:
+		return "FWP_V4_ADDR_MASK"
+	case FWP_V6_ADDR_MASK:
+		return "FWP_V6_ADDR_MASK"
+	case FWP_RANGE_TYPE:
+		return "FWP_RANGE_TYPE"
+	case FWP_DATA_TYPE_MAX:
+		return "FWP_DATA_TYPE_MAX"
 	default:
 		return fmt.Sprintf("FwpDataType_UNKNOWN(%d)", dt)
 	}

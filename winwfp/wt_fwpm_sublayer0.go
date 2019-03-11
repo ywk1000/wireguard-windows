@@ -20,6 +20,6 @@ type wtFwpmSublayer0 struct {
 	displayData  wtFwpmDisplayData0
 	flags        wtFwpmSublayerFlags
 	providerKey  *windows.GUID // Windows type: *GUID
-	providerData wtFwpByteBlob
+	providerData FwpByteBlob
 	weight       uint16
 }

@@ -14,7 +14,7 @@ type wtFwpmFilter0 struct {
 	displayData         wtFwpmDisplayData0
 	flags               FwpmFilterFlags // Windows type: UINT32
 	providerKey         *windows.GUID // Windows type: *GUID
-	providerData        wtFwpByteBlob
+	providerData        FwpByteBlob
 	layerKey            windows.GUID // Windows type: GUID
 	subLayerKey         windows.GUID // Windows type: GUID
 	weight              wtFwpValue0

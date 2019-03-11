@@ -29,21 +29,3 @@ type wtFwpmSession0 struct {
 	username             *uint16 // Windows type: *wchar_t
 	kernelMode           uint8   // Windows type: BOOL
 }
-
-func (s *wtFwpmSession0) toFwpmSession() *FwpmSession {
-
-	if s == nil {
-		return nil
-	}
-
-	return &FwpmSession{
-		SessionKey:           s.sessionKey,
-		DisplayData:          *s.displayData.toFwpmDisplayData(),
-		Dynamic:              s.flags.isDynamic(),
-		TxnWaitTimeoutInMSec: s.txnWaitTimeoutInMSec,
-		ProcessId:            s.processId,
-		Sid:                  s.sid.toSid(),
-		Username:             wcharToString(s.username),
-		KernelMode:           uint8ToBool(s.kernelMode),
-	}
-}
