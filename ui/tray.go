@@ -97,7 +97,7 @@ func (tray *Tray) setTunnelStateWithNotification(tunnel *service.Tunnel, state s
 		}
 	case service.TunnelStopping:
 		tray.SetToolTip("WireGuard: Deactivating...")
-	case service.TunnelStopped, service.TunnelDeleting:
+	case service.TunnelStopped:
 		tray.SetToolTip("WireGuard: Deactivated")
 		if showNotifications {
 			tray.ShowInfo("WireGuard Deactivated", fmt.Sprintf("The %s tunnel has been deactivated.", tunnel.Name))

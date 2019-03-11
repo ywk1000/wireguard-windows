@@ -47,8 +47,23 @@ func RunUI() {
 	defer tray.Dispose()
 
 	// Bind to updates
-	service.IPCClientRegisterTunnelChange(tray.setTunnelState)
-	service.IPCClientRegisterTunnelChange(mtw.setTunnelState)
+	service.IPCClientRegisterTunnelChange(func(tunnel *service.Tunnel, state service.TunnelState, err error) {
+		if err == nil {
+			return
+		}
+
+		if mtw.Visible() {
+			walk.MsgBox(mtw, "Tunnel Error", err.Error()+"\n\nPlease consult the Windows Event Log for more information.", walk.MsgBoxIconWarning)
+		} else {
+			tray.ShowError("WireGuard Tunnel Error", err.Error())
+		}
+	})
+	service.IPCClientRegisterTunnelChange(func(tunnel *service.Tunnel, state service.TunnelState, err error) {
+		tray.setTunnelStateWithNotification(tunnel, state, err == nil)
+	})
+	service.IPCClientRegisterTunnelChange(func(tunnel *service.Tunnel, state service.TunnelState, err error) {
+		mtw.setTunnelState(tunnel, state)
+	})
 
 	// Fetch current state
 	go func() {

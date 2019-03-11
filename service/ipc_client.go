@@ -7,6 +7,7 @@ package service
 
 import (
 	"encoding/gob"
+	"errors"
 	"golang.zx2c4.com/wireguard/windows/conf"
 	"net/rpc"
 	"os"
@@ -24,7 +25,6 @@ const (
 	TunnelStopped
 	TunnelStarting
 	TunnelStopping
-	TunnelDeleting
 )
 
 type NotificationType int
@@ -37,7 +37,7 @@ const (
 var rpcClient *rpc.Client
 
 type TunnelChangeCallback struct {
-	cb func(tunnel *Tunnel, state TunnelState)
+	cb func(tunnel *Tunnel, state TunnelState, err error)
 }
 
 var tunnelChangeCallbacks = make(map[*TunnelChangeCallback]bool)
@@ -67,12 +67,24 @@ func InitializeIPCClient(reader *os.File, writer *os.File, events *os.File) {
 				}
 				var state TunnelState
 				err = decoder.Decode(&state)
-				if err != nil || state == TunnelUnknown {
+				if err != nil {
+					continue
+				}
+				var errStr string
+				err = decoder.Decode(&errStr)
+				if err != nil {
+					continue
+				}
+				var retErr error
+				if len(errStr) > 0 {
+					retErr = errors.New(errStr)
+				}
+				if state == TunnelUnknown {
 					continue
 				}
 				t := &Tunnel{tunnel}
 				for cb := range tunnelChangeCallbacks {
-					cb.cb(t, state)
+					cb.cb(t, state, retErr)
 				}
 			case TunnelsChangeNotificationType:
 				for cb := range tunnelsChangeCallbacks {
@@ -129,7 +141,7 @@ func IPCClientQuit(stopTunnelsOnQuit bool) (bool, error) {
 	return alreadyQuit, rpcClient.Call("ManagerService.Quit", stopTunnelsOnQuit, &alreadyQuit)
 }
 
-func IPCClientRegisterTunnelChange(cb func(tunnel *Tunnel, state TunnelState)) *TunnelChangeCallback {
+func IPCClientRegisterTunnelChange(cb func(tunnel *Tunnel, state TunnelState, err error)) *TunnelChangeCallback {
 	s := &TunnelChangeCallback{cb}
 	tunnelChangeCallbacks[s] = true
 	return s
