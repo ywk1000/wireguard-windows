@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
@@ -171,8 +172,35 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	currentTunnelContainer.SetLayout(walk.NewVBoxLayout())
 
 	// TODO: Replace with ConfView
-	currentTunnel, _ := walk.NewTextEdit(currentTunnelContainer)
-	currentTunnel.SetReadOnly(true)
+	confView, _ := NewConfView(currentTunnelContainer)
+
+	// TODO: Call immediately on visible main window, index changed
+	updateConfView := func() {
+		if !mtw.Visible() {
+			return
+		}
+
+		currentIndex := mtw.tunnelsTv.CurrentIndex()
+		if currentIndex == -1 {
+			return
+		}
+		currentTunnel := mtw.tunnels.tunnels[currentIndex].tunnel
+
+		config, err := currentTunnel.RuntimeConfig()
+		if err != nil {
+			return
+		}
+
+		confView.SetConfiguration(&config)
+	}
+	go func() {
+		// TODO: teardown in Dispose()
+		t := time.NewTicker(time.Second)
+		for {
+			updateConfView()
+			<-t.C
+		}
+	}()
 
 	controlsContainer, _ := walk.NewComposite(currentTunnelContainer)
 	controlsContainer.SetLayout(walk.NewHBoxLayout())

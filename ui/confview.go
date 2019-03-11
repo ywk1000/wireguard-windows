@@ -7,14 +7,15 @@ package ui
 
 import (
 	"fmt"
-	"github.com/lxn/walk"
-	"github.com/lxn/win"
-	"golang.org/x/sys/windows"
-	"golang.zx2c4.com/wireguard/windows/conf"
 	"reflect"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"github.com/lxn/walk"
+	"github.com/lxn/win"
+	"golang.org/x/sys/windows"
+	"golang.zx2c4.com/wireguard/windows/conf"
 )
 
 type labelTextLine struct {
