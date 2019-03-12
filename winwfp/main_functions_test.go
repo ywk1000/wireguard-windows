@@ -22,3 +22,14 @@ func TestEnforceDns(t *testing.T) {
 		t.Errorf("BlockDnsExceptInterface() returned an error: %v", err)
 	}
 }
+
+func TestEnforceTraffic(t *testing.T) {
+
+	err := BlockTrafficExceptInterface(allowedInterfaceLuid, "WireGuard Block",
+		"Allows traffic only through wintun interface.")
+
+	if err != nil {
+		t.Errorf("BlockTrafficExceptInterface() returned an error: %v", err)
+	}
+}
+
