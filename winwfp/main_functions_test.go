@@ -13,23 +13,14 @@ const (
 	allowedInterfaceLuid = uint64(1689399632855040) // TODO: Set LUID of an interface for which DNS will be allowed
 )
 
-func TestEnforceDns(t *testing.T) {
-
-	err := BlockDnsExceptInterface(allowedInterfaceLuid, "WireGuard DNS Block",
-		"Allows DNS traffic only through wintun interface.")
-
-	if err != nil {
-		t.Errorf("BlockDnsExceptInterface() returned an error: %v", err)
-	}
-}
-
 func TestEnforceTraffic(t *testing.T) {
 
-	err := BlockTrafficExceptInterface(allowedInterfaceLuid, "WireGuard Block",
-		"Allows traffic only through wintun interface.")
+	err := StartTrafficBlock(allowedInterfaceLuid, "WireGuard Block","Allows traffic only through wintun interface.")
 
 	if err != nil {
-		t.Errorf("BlockTrafficExceptInterface() returned an error: %v", err)
+		t.Errorf("StartTrafficBlock() returned an error: %v", err)
 	}
+
+	StopTrafficBlock()
 }
 

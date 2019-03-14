@@ -38,7 +38,6 @@ func errnoErr(e syscall.Errno) error {
 
 var (
 	modfwpuclnt = windows.NewLazySystemDLL("fwpuclnt.dll")
-	modKernel32 = windows.NewLazySystemDLL("Kernel32.dll")
 
 	procConvertSidToStringSidW    = modfwpuclnt.NewProc("ConvertSidToStringSidW")
 	procAllocateAndInitializeSid  = modfwpuclnt.NewProc("AllocateAndInitializeSid")
@@ -46,10 +45,12 @@ var (
 	procFwpmEngineOpen0           = modfwpuclnt.NewProc("FwpmEngineOpen0")
 	procFwpmEngineClose0          = modfwpuclnt.NewProc("FwpmEngineClose0")
 	procFwpmSubLayerAdd0          = modfwpuclnt.NewProc("FwpmSubLayerAdd0")
-	procGetModuleFileNameW        = modKernel32.NewProc("GetModuleFileNameW")
 	procFwpmGetAppIdFromFileName0 = modfwpuclnt.NewProc("FwpmGetAppIdFromFileName0")
 	procFwpmFreeMemory0           = modfwpuclnt.NewProc("FwpmFreeMemory0")
 	procFwpmFilterAdd0            = modfwpuclnt.NewProc("FwpmFilterAdd0")
+	procFwpmTransactionBegin0     = modfwpuclnt.NewProc("FwpmTransactionBegin0")
+	procFwpmTransactionCommit0    = modfwpuclnt.NewProc("FwpmTransactionCommit0")
+	procFwpmTransactionAbort0     = modfwpuclnt.NewProc("FwpmTransactionAbort0")
 )
 
 func convertSidToStringSidW(Sid *wtSid, StringSid *uint16) (result uint8) {
@@ -88,12 +89,6 @@ func fwpmSubLayerAdd0(engineHandle uintptr, subLayer *wtFwpmSublayer0, sd uintpt
 	return
 }
 
-func getModuleFileNameW(hModule uintptr, lpFilename *uint16, nSize uint32) (result uint32) {
-	r0, _, _ := syscall.Syscall(procGetModuleFileNameW.Addr(), 3, uintptr(hModule), uintptr(unsafe.Pointer(lpFilename)), uintptr(nSize))
-	result = uint32(r0)
-	return
-}
-
 func fwpmGetAppIdFromFileName0(fileName *uint16, appId unsafe.Pointer) (result uint32) {
 	r0, _, _ := syscall.Syscall(procFwpmGetAppIdFromFileName0.Addr(), 2, uintptr(unsafe.Pointer(fileName)), uintptr(appId), 0)
 	result = uint32(r0)
@@ -107,6 +102,24 @@ func fwpmFreeMemory0(p unsafe.Pointer) {
 
 func fwpmFilterAdd0(engineHandle uintptr, filter *wtFwpmFilter0, sd uintptr, id *uint64) (result uint32) {
 	r0, _, _ := syscall.Syscall6(procFwpmFilterAdd0.Addr(), 4, uintptr(engineHandle), uintptr(unsafe.Pointer(filter)), uintptr(sd), uintptr(unsafe.Pointer(id)), 0, 0)
+	result = uint32(r0)
+	return
+}
+
+func fwpmTransactionBegin0(engineHandle uintptr, flags uint32) (result uint32) {
+	r0, _, _ := syscall.Syscall(procFwpmTransactionBegin0.Addr(), 2, uintptr(engineHandle), uintptr(flags), 0)
+	result = uint32(r0)
+	return
+}
+
+func fwpmTransactionCommit0(engineHandle uintptr) (result uint32) {
+	r0, _, _ := syscall.Syscall(procFwpmTransactionCommit0.Addr(), 1, uintptr(engineHandle), 0, 0)
+	result = uint32(r0)
+	return
+}
+
+func fwpmTransactionAbort0(engineHandle uintptr) (result uint32) {
+	r0, _, _ := syscall.Syscall(procFwpmTransactionAbort0.Addr(), 1, uintptr(engineHandle), 0, 0)
 	result = uint32(r0)
 	return
 }

@@ -23,9 +23,6 @@ package winwfp
 // https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmsublayeradd0
 //sys	fwpmSubLayerAdd0(engineHandle uintptr, subLayer *wtFwpmSublayer0, sd uintptr) (result uint32) = fwpuclnt.FwpmSubLayerAdd0
 
-// https://docs.microsoft.com/en-us/windows/desktop/api/libloaderapi/nf-libloaderapi-getmodulefilenamew
-//sys	getModuleFileNameW(hModule uintptr, lpFilename *uint16, nSize uint32) (result uint32) = Kernel32.GetModuleFileNameW
-
 // https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmgetappidfromfilename0
 //sys	fwpmGetAppIdFromFileName0(fileName *uint16, appId unsafe.Pointer) (result uint32) = fwpuclnt.FwpmGetAppIdFromFileName0
 
@@ -34,3 +31,12 @@ package winwfp
 
 // https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmfilteradd0
 //sys	fwpmFilterAdd0(engineHandle uintptr, filter *wtFwpmFilter0, sd uintptr, id *uint64) (result uint32) = fwpuclnt.FwpmFilterAdd0
+
+// https://docs.microsoft.com/en-us/windows/desktop/api/Fwpmu/nf-fwpmu-fwpmtransactionbegin0
+//sys	fwpmTransactionBegin0(engineHandle uintptr, flags uint32) (result uint32) = fwpuclnt.FwpmTransactionBegin0
+
+// https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmtransactioncommit0
+//sys	fwpmTransactionCommit0(engineHandle uintptr) (result uint32) = fwpuclnt.FwpmTransactionCommit0
+
+// https://docs.microsoft.com/en-us/windows/desktop/api/fwpmu/nf-fwpmu-fwpmtransactionabort0
+//sys	fwpmTransactionAbort0(engineHandle uintptr) (result uint32) = fwpuclnt.FwpmTransactionAbort0

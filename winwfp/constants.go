@@ -18,6 +18,14 @@ const (
 
 	wtFwpmAction0_filterType_Offset = 4
 
+	wtFwpV4AddrAndMask_Size = 8
+
+	wtFwpV4AddrAndMask_mask_Offset = 4
+
+	wtFwpV6AddrAndMask_Size = 17
+
+	wtFwpV6AddrAndMask_prefixLength_Offset = 16
+
 	wtSid_Size = 12
 
 	wtSid_SubAuthorityCount_Offset   = 1
