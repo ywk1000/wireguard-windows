@@ -4,8 +4,8 @@ logic:
 - Tunnel saving validation and actual saving
 - Tunnel stats view in manage_tunnels
 - Export tunnel + log
-- Handling tunnel state updates in main window
-- Handling tunnel state updates in notify icon
+- Handling tunnel state updates in main window (status checkbox)
+- Handling tunnel state updates in notify icon (active cidrs)
 
 styling:
 
