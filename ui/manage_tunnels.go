@@ -211,7 +211,7 @@ func (mtw *ManageTunnelsWindow) Run() int {
 }
 
 func (mtw *ManageTunnelsWindow) Show() {
-	mtw.Show()
+	mtw.MainWindow.Show()
 	win.SetForegroundWindow(mtw.Handle())
 	win.BringWindowToTop(mtw.Handle())
 }
