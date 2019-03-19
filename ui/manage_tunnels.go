@@ -220,16 +220,19 @@ func (mtw *ManageTunnelsWindow) setTunnelState(tunnel *service.Tunnel, state ser
 func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) *conf.Config {
 	var (
 		title  string
+		name   string
 		config conf.Config
 	)
 
 	if tunnel == nil {
 		// Creating a new tunnel, create a new private key and use the default template
 		title = "Create new tunnel"
+		name = "New tunnel"
 		pk, _ := conf.NewPrivateKey()
 		config = conf.Config{Interface: conf.Interface{PrivateKey: *pk}}
 	} else {
 		title = "Edit tunnel"
+		name = tunnel.Name
 		config, _ = tunnel.RuntimeConfig()
 	}
 
@@ -237,6 +240,8 @@ func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) *conf.Conf
 	dlg.SetIcon(mtw.icon)
 	dlg.SetTitle(title)
 	dlg.SetLayout(walk.NewGridLayout())
+	// TODO: use size hints in layout elements to communicate the minimal width
+	dlg.SetMinMaxSize(walk.Size{500, 400}, walk.Size{9999, 9999})
 	dlg.Layout().(*walk.GridLayout).SetColumnStretchFactor(1, 3)
 	dlg.Layout().SetSpacing(6)
 	dlg.Layout().SetMargins(walk.Margins{18, 18, 18, 18})
@@ -249,7 +254,7 @@ func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) *conf.Conf
 	nameEdit, _ := walk.NewLineEdit(dlg)
 	dlg.Layout().(*walk.GridLayout).SetRange(nameEdit, walk.Rectangle{1, 0, 1, 1})
 	// TODO: compute the next available tunnel name ?
-	// nameEdit.SetText("")
+	nameEdit.SetText(name)
 
 	pubkeyLabel, _ := walk.NewTextLabel(dlg)
 	dlg.Layout().(*walk.GridLayout).SetRange(pubkeyLabel, walk.Rectangle{0, 1, 1, 1})
