@@ -6,6 +6,7 @@ logic:
 - Export tunnel + log
 - Handling tunnel state updates in main window (status checkbox)
 - Handling tunnel state updates in notify icon (active cidrs)
+- Add button to toggle tunnel status in the ConfView
 
 styling:
 

@@ -118,7 +118,6 @@ func (mtw *ManageTunnelsWindow) setup() error {
 
 	addAction := walk.NewAction()
 	addAction.SetText("Add empty tunnel")
-	// TODO: How to tell it's a new tunnel
 	addAction.Triggered().Attach(mtw.onAddTunnel)
 
 	exportLogAction := walk.NewAction()
@@ -192,9 +191,6 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	controlsContainer, _ := walk.NewComposite(currentTunnelContainer)
 	controlsContainer.SetLayout(walk.NewHBoxLayout())
 	controlsContainer.Layout().SetMargins(walk.Margins{})
-
-	toggleTunnel, _ := walk.NewCheckBox(controlsContainer)
-	toggleTunnel.SetText("Status: deactivated")
 
 	walk.NewHSpacer(controlsContainer)
 
