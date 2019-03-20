@@ -68,6 +68,8 @@ type ManageTunnelsWindow struct {
 
 	tunnels   *Tunnels
 	tunnelsTv *walk.TableView
+
+	confView *ConfView
 }
 
 func NewManageTunnelsWindow(icon *walk.Icon) (*ManageTunnelsWindow, error) {
@@ -108,8 +110,9 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	mtw.tunnelsTv.SetAlternatingRowBGColor(walk.RGB(239, 239, 239))
 	mtw.tunnelsTv.SetLastColumnStretched(true)
 	mtw.tunnelsTv.SetHeaderHidden(true)
-	mtw.tunnelsTv.ItemActivated().Attach(mtw.onEditTunnel)
 	mtw.tunnelsTv.Columns().Add(walk.NewTableViewColumn())
+	mtw.tunnelsTv.ItemActivated().Attach(mtw.onEditTunnel)
+	mtw.tunnelsTv.CurrentIndexChanged().Attach(mtw.updateConfView)
 
 	importAction := walk.NewAction()
 	importAction.SetText("Import tunnels from file...")
@@ -152,34 +155,12 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	currentTunnelContainer, _ := walk.NewComposite(mtw)
 	currentTunnelContainer.SetLayout(walk.NewVBoxLayout())
 
-	// TODO: Replace with ConfView
-	confView, _ := NewConfView(currentTunnelContainer)
-
-	// TODO: Call immediately on visible main window, index changed
-	updateConfView := func() {
-		if !mtw.Visible() {
-			return
-		}
-
-		currentIndex := mtw.tunnelsTv.CurrentIndex()
-		if currentIndex == -1 {
-			return
-		}
-		currentTunnel := mtw.tunnels.tunnels[currentIndex]
-
-		config, err := currentTunnel.RuntimeConfig()
-		if err != nil {
-			return
-		}
-
-		confView.SetConfiguration(&config)
-	}
+	mtw.confView, _ = NewConfView(currentTunnelContainer)
 	go func() {
 		// TODO: teardown in Dispose()
 		t := time.NewTicker(time.Second)
-		for {
-			updateConfView()
-			<-t.C
+		for range t.C {
+			mtw.updateConfView()
 		}
 	}()
 
@@ -207,8 +188,29 @@ func (mtw *ManageTunnelsWindow) Show() {
 	win.BringWindowToTop(mtw.Handle())
 }
 
+// TODO: Call immediately on visible main window
+func (mtw *ManageTunnelsWindow) updateConfView() {
+	if !mtw.Visible() {
+		return
+	}
+
+	currentIndex := mtw.tunnelsTv.CurrentIndex()
+	if currentIndex == -1 {
+		// TODO: config must be non-nil right now
+		// mtw.confView.SetConfiguration(nil)
+		return
+	}
+	currentTunnel := mtw.tunnels.tunnels[currentIndex]
+
+	config, err := currentTunnel.RuntimeConfig()
+	if err != nil {
+		return
+	}
+
+	mtw.confView.SetConfiguration(&config)
+}
+
 func (mtw *ManageTunnelsWindow) setTunnelState(tunnel *service.Tunnel, state service.TunnelState) {
-	// TODO: sorting
 	insertIdx := len(mtw.tunnels.tunnels)
 	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, *tunnel)
 	mtw.tunnels.PublishRowsInserted(insertIdx, insertIdx)
