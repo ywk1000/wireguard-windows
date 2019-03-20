@@ -211,6 +211,7 @@ func (mtw *ManageTunnelsWindow) updateConfView() {
 }
 
 func (mtw *ManageTunnelsWindow) setTunnelState(tunnel *service.Tunnel, state service.TunnelState) {
+	// TODO: call tunnels.Sort() and change the event to from=insert index, len(tunnels)-1
 	insertIdx := len(mtw.tunnels.tunnels)
 	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, *tunnel)
 	mtw.tunnels.PublishRowsInserted(insertIdx, insertIdx)
