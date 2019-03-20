@@ -208,8 +208,10 @@ func (mtw *ManageTunnelsWindow) Show() {
 }
 
 func (mtw *ManageTunnelsWindow) setTunnelState(tunnel *service.Tunnel, state service.TunnelState) {
+	// TODO: sorting
+	insertIdx := len(mtw.tunnels.tunnels)
 	mtw.tunnels.tunnels = append(mtw.tunnels.tunnels, *tunnel)
-	mtw.tunnels.PublishRowsReset()
+	mtw.tunnels.PublishRowsInserted(insertIdx, insertIdx)
 }
 
 func (mtw *ManageTunnelsWindow) runTunnelEdit(tunnel *service.Tunnel) *conf.Config {
