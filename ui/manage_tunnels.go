@@ -102,7 +102,6 @@ func (mtw *ManageTunnelsWindow) setup() error {
 
 	// Left side of main window: listbox, controls
 
-	// TODO: not greedy vertically
 	// TODO: make tunnels + tunnelsTv their own struct
 	mtw.tunnelsTv, _ = walk.NewTableView(listBoxContainer)
 	mtw.tunnelsTv.SetModel(mtw.tunnels)
@@ -128,29 +127,25 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	exportTunnelAction.SetText("Export tunnels to zip...")
 	// TODO: Triggered().Attach()
 
-	// TODO: Maybe a Rebar looks better
-	listBoxButtonBar, _ := walk.NewComposite(listBoxContainer)
-	listBoxButtonBar.SetLayout(walk.NewHBoxLayout())
-	listBoxButtonBar.Layout().SetMargins(walk.Margins{})
-	listBoxButtonBar.Layout().SetSpacing(0)
+	listBoxToolBar := mtw.ToolBar()
 
-	// TODO: Trigger the menu on standard button click
-	addButton, _ := walk.NewSplitButton(listBoxButtonBar)
-	addButton.SetText("+")
-	addButton.Menu().Actions().Add(addAction)
-	addButton.Menu().Actions().Add(importAction)
+	// TODO: Add this to the dispose array (AddDisposable)
+	addMenu, _ := walk.NewMenu()
+	addMenu.Actions().Add(addAction)
+	addMenu.Actions().Add(importAction)
+	addMenuAction, _ := listBoxToolBar.Actions().AddMenu(addMenu)
+	addMenuAction.SetText("Add")
 
-	deleteButton, _ := walk.NewPushButton(listBoxButtonBar)
-	deleteButton.SetText("-")
-	deleteButton.Clicked().Attach(mtw.onDelete)
+	// TODO: Doesn't get added to the toolbar?
+	deleteAction := walk.NewAction()
+	deleteAction.SetText("Delete")
+	deleteAction.Triggered().Attach(mtw.onDelete)
 
-	// TODO: Trigger the menu on standard button click
-	settingsButton, _ := walk.NewSplitButton(listBoxButtonBar)
-	settingsButton.SetText("S")
-	settingsButton.Menu().Actions().Add(exportLogAction)
-	settingsButton.Menu().Actions().Add(exportTunnelAction)
-
-	walk.NewHSpacer(listBoxButtonBar)
+	settingsMenu, _ := walk.NewMenu()
+	settingsMenu.Actions().Add(exportLogAction)
+	settingsMenu.Actions().Add(exportTunnelAction)
+	settingsMenuAction, _ := listBoxToolBar.Actions().AddMenu(settingsMenu)
+	settingsMenuAction.SetText("Export")
 
 	// Right side of main window: currently selected tunnel, edit
 
