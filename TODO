@@ -1,6 +1,6 @@
 logic:
 
-- manage_tunnels button dropdown not activated on button click
+- manage tunnels toolbar does not display the delete action
 - Tunnel saving validation and actual saving
 - Tunnel stats view in manage_tunnels
 - Export tunnel + log
@@ -10,7 +10,8 @@ logic:
 
 styling:
 
-- button bar in manage_tunnels
+- manage_tunnels toolbar has no icons
+- manage tunnels toolbar should/could be displayed like the mac gui (need a rebar)
 - invalid min size for edit popup
 - stats view
 - tunnels list
