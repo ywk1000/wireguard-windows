@@ -164,6 +164,7 @@ func (mtw *ManageTunnelsWindow) setup() error {
 		}
 	}()
 
+	// TODO: Find a better place for this?
 	logfile, err := service.IPCClientLogFilePath()
 	var logger *ringlogger.Ringlogger
 	if err == nil {
@@ -398,7 +399,7 @@ func (mtw *ManageTunnelsWindow) importFiles(paths []string) {
 	case n == 1 && m != n:
 		walk.MsgBox(mtw, "Error", fmt.Sprintf("Could not parse some files: %v", lastErr), walk.MsgBoxIconWarning)
 	case n == 1 && m == n:
-		// Select tunnel
+		// TODO: Select tunnel in the list
 	case m == n:
 		walk.MsgBox(mtw, "Imported tunnels", fmt.Sprintf("Imported %d tunnels", m), walk.MsgBoxOK)
 	case m != n:

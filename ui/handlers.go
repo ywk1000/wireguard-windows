@@ -30,4 +30,6 @@ func onQuit() {
 		walk.MsgBox(nil, "Error Exiting WireGuard", fmt.Sprintf("Unable to exit service due to: %s. You may want to stop WireGuard from the service manager.", err), walk.MsgBoxIconError)
 		os.Exit(1)
 	}
+
+	walk.App().Exit(0)
 }

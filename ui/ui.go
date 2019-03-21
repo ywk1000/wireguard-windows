@@ -86,5 +86,6 @@ func RunUI() {
 	}()
 
 	time.AfterFunc(time.Minute*15, nag)
+	mtw.Show()
 	mtw.Run()
 }
