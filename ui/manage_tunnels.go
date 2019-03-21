@@ -45,7 +45,7 @@ func NewManageTunnelsWindow(icon *walk.Icon) (*ManageTunnelsWindow, error) {
 
 func (mtw *ManageTunnelsWindow) setup() error {
 	mtw.SetIcon(mtw.icon)
-	mtw.SetSize(walk.Size{900, 1400})
+	mtw.SetSize(walk.Size{900, 600})
 	// TODO: Use a HSplitter to allow resizing
 	mtw.SetLayout(walk.NewHBoxLayout())
 	mtw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
@@ -170,7 +170,12 @@ func (mtw *ManageTunnelsWindow) updateConfView() {
 		return
 	}
 
-	mtw.confView.SetConfiguration(&config)
+	state, err := currentTunnel.State()
+	if err != nil {
+		return
+	}
+
+	mtw.confView.SetConfiguration(&config, state)
 }
 
 func (mtw *ManageTunnelsWindow) setTunnelState(tunnel *service.Tunnel, state service.TunnelState) {
