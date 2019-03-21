@@ -8,9 +8,10 @@ package service
 import (
 	"encoding/gob"
 	"errors"
-	"golang.zx2c4.com/wireguard/windows/conf"
 	"net/rpc"
 	"os"
+
+	"golang.zx2c4.com/wireguard/windows/conf"
 )
 
 type Tunnel struct {
@@ -224,6 +225,7 @@ func IPCClientQuit(stopTunnelsOnQuit bool) (bool, error) {
 }
 
 func IPCClientLogFilePath() (string, error) {
+	return "TODO.bin", nil
 	var path string
 	return path, rpcClient.Call("ManagerService.LogFilePath", uintptr(0), &path)
 }

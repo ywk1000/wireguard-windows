@@ -165,16 +165,16 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	}()
 
 	// TODO: Find a better place for this?
-	logfile, err := service.IPCClientLogFilePath()
-	var logger *ringlogger.Ringlogger
-	if err == nil {
-		logger, err = ringlogger.NewRinglogger(logfile, "GUI")
-	}
-	if err != nil {
-		walk.MsgBox(nil, "Unable to initialize logging", fmt.Sprintf("%v\n\nFile: %s", err, logfile), walk.MsgBoxIconError)
-		return
-	}
-	NewLogView(currentTunnelContainer, logger)
+	// logfile, err := service.IPCClientLogFilePath()
+	// var logger *ringlogger.Ringlogger
+	// if err == nil {
+	// 	logger, err = ringlogger.NewRinglogger(logfile, "GUI")
+	// }
+	// if err != nil {
+	// 	walk.MsgBox(nil, "Unable to initialize logging", fmt.Sprintf("%v\n\nFile: %s", err, logfile), walk.MsgBoxIconError)
+	// 	return err
+	// }
+	// NewLogView(currentTunnelContainer, logger)
 
 	controlsContainer, _ := walk.NewComposite(currentTunnelContainer)
 	controlsContainer.SetLayout(walk.NewHBoxLayout())
