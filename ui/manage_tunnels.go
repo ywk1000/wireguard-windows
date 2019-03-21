@@ -130,8 +130,7 @@ func (mtw *ManageTunnelsWindow) setup() error {
 	exportTunnelAction.SetText("Export tunnels to zip...")
 	// TODO: Triggered().Attach()
 
-	listBoxToolBar, _ := walk.NewToolBar(listBoxContainer)
-	walk.NewReBar(listBoxContainer, listBoxToolBar)
+	listBoxToolBar := mtw.ToolBar()
 
 	// TODO: Add this to the dispose array (AddDisposable)
 	addMenu, _ := walk.NewMenu()
