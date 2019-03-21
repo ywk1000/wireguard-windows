@@ -35,13 +35,13 @@ if exist ..\..\.deps\prepared goto :build
 	cd ..\ui\tests || goto :error
 
 :build
-	set PATH=%STARTDIR%\.deps\x86_64-w64-mingw32-native\bin\;%STARTDIR%\.deps\go\bin\;%PATH%
+	set PATH=%STARTDIR%\..\..\.deps\x86_64-w64-mingw32-native\bin\;%STARTDIR%\..\..\.deps\go\bin\;%PATH%
 	set CC=x86_64-w64-mingw32-gcc.exe
 	set CFLAGS=-O3 -Wall -std=gnu11
 	set GOOS=windows
 	set GOARCH=amd64
-	set GOPATH=%STARTDIR%\.deps\gopath
-	set GOROOT=%STARTDIR%\.deps\go
+	set GOPATH=%STARTDIR%\..\..\.deps\gopath
+	set GOROOT=%STARTDIR%\..\..\.deps\go
 	set CGO_ENABLED=1
 	echo [+] Assembling resources
 	windres.exe -i ..\..\resources.rc -o resources.syso -O coff || goto :error
