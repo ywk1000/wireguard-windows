@@ -53,7 +53,11 @@ func RunUI() {
 		}
 
 		if mtw.Visible() {
-			walk.MsgBox(mtw, "Tunnel Error", err.Error()+"\n\nPlease consult the Windows Event Log for more information.", walk.MsgBoxIconWarning)
+			errMsg := err.Error()
+			if len(errMsg) > 0 && errMsg[len(errMsg)-1] != '.' {
+				errMsg += "."
+			}
+			walk.MsgBox(mtw, "Tunnel Error", errMsg()+"\n\nPlease consult the Windows Event Log for more information.", walk.MsgBoxIconWarning)
 		} else {
 			tray.ShowError("WireGuard Tunnel Error", err.Error())
 		}

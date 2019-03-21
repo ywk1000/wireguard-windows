@@ -6,15 +6,13 @@
 package service
 
 import (
-	"fmt"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
-	"golang.org/x/sys/windows/svc/eventlog"
 	"golang.zx2c4.com/wireguard/windows/conf"
+	"golang.zx2c4.com/wireguard/windows/ringlogger"
 	"log"
 	"os"
 	"runtime/debug"
-	"strconv"
 	"sync"
 	"syscall"
 	"unsafe"
@@ -53,51 +51,15 @@ type wtsSessionInfo struct {
 
 type wellKnownSidType uint32
 
-const (
-	winBuiltinAdministratorsSid wellKnownSidType = 26
-)
-
 //sys wtfQueryUserToken(session uint32, token *windows.Token) (err error) = wtsapi32.WTSQueryUserToken
 //sys wtsEnumerateSessions(handle windows.Handle, reserved uint32, version uint32, sessions **wtsSessionInfo, count *uint32) (err error) = wtsapi32.WTSEnumerateSessionsW
 //sys wtsFreeMemory(ptr uintptr) = wtsapi32.WTSFreeMemory
-//sys createWellKnownSid(sidType wellKnownSidType, domainSid *windows.SID, sid *windows.SID, sizeSid *uint32) (err error) = advapi32.CreateWellKnownSid
-
-//TODO: Upstream this to x/sys/windows
-func localWellKnownSid(sidType wellKnownSidType) (*windows.SID, error) {
-	n := uint32(50)
-	for {
-		b := make([]byte, n)
-		sid := (*windows.SID)(unsafe.Pointer(&b[0]))
-		err := createWellKnownSid(sidType, nil, sid, &n)
-		if err == nil {
-			return sid, nil
-		}
-		if err != windows.ERROR_INSUFFICIENT_BUFFER {
-			return nil, err
-		}
-		if n <= uint32(len(b)) {
-			return nil, err
-		}
-	}
-}
 
 type managerService struct{}
-
-type elogger struct {
-	*eventlog.Log
-}
-
-func (elog elogger) Write(p []byte) (n int, err error) {
-	msg := string(p)
-	n = len(msg)
-	err = elog.Warning(1, msg)
-	return
-}
 
 func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (svcSpecificEC bool, exitCode uint32) {
 	changes <- svc.Status{State: svc.StartPending}
 
-	var elog *eventlog.Log
 	var err error
 	serviceError := ErrorSuccess
 
@@ -105,26 +67,19 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 		svcSpecificEC, exitCode = determineErrorCode(err, serviceError)
 		logErr := combineErrors(err, serviceError)
 		if logErr != nil {
-			if elog != nil {
-				elog.Error(1, logErr.Error())
-			} else {
-				fmt.Println(logErr.Error())
-			}
+			log.Print(logErr)
 		}
 		changes <- svc.Status{State: svc.StopPending}
 	}()
 
-	//TODO: remember to clean this up in the msi uninstaller
-	eventlog.InstallAsEventCreate("WireGuard", eventlog.Info|eventlog.Warning|eventlog.Error)
-	elog, err = eventlog.Open("WireGuard")
+	err = ringlogger.InitGlobalLogger("MGR")
 	if err != nil {
-		serviceError = ErrorEventlogOpen
+		serviceError = ErrorRingloggerOpen
 		return
 	}
-	log.SetOutput(elogger{elog})
 	defer func() {
 		if x := recover(); x != nil {
-			elog.Error(1, fmt.Sprintf("%v:\n%s", x, string(debug.Stack())))
+			log.Printf("%v:\n%s", x, string(debug.Stack()))
 			panic(x)
 		}
 	}()
@@ -135,7 +90,7 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 		return
 	}
 
-	adminSid, err := localWellKnownSid(winBuiltinAdministratorsSid)
+	adminSid, err := windows.CreateWellKnownSid(windows.WinBuiltinAdministratorsSid)
 	if err != nil {
 		serviceError = ErrorFindAdministratorsSID
 		return
@@ -172,7 +127,7 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 			//TODO: Isn't it better to use an impersonation token and userToken.IsMember instead?
 			gs, err := userToken.GetTokenGroups()
 			if err != nil {
-				elog.Error(1, "Unable to lookup user groups from token: "+err.Error())
+				log.Printf("Unable to lookup user groups from token: %v", err)
 				return
 			}
 			p := unsafe.Pointer(&gs.Groups[0])
@@ -191,12 +146,12 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 
 			user, err := userToken.GetTokenUser()
 			if err != nil {
-				elog.Error(1, "Unable to lookup user from token: "+err.Error())
+				log.Printf("Unable to lookup user from token: %v", err)
 				return
 			}
 			username, domain, accType, err := user.User.Sid.LookupAccount("")
 			if err != nil {
-				elog.Error(1, "Unable to lookup username from sid: "+err.Error())
+				log.Printf("Unable to lookup username from sid: %v", err)
 				return
 			}
 			if accType != windows.SidTypeUser {
@@ -205,17 +160,17 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 
 			ourReader, theirReader, theirReaderStr, ourWriter, theirWriter, theirWriterStr, err := inheritableSocketpairEmulation()
 			if err != nil {
-				elog.Error(1, "Unable to create two inheritable pipes: "+err.Error())
+				log.Printf("Unable to create two inheritable pipes: %v", err)
 				return
 			}
 			ourEvents, theirEvents, theirEventStr, err := inheritableEvents()
 			err = IPCServerListen(ourReader, ourWriter, ourEvents)
 			if err != nil {
-				elog.Error(1, "Unable to listen on IPC pipes: "+err.Error())
+				log.Printf("Unable to listen on IPC pipes: %v", err)
 				return
 			}
 
-			elog.Info(1, "Starting UI process for user: "+username+", domain: "+domain)
+			log.Printf("Starting UI process for user: '%s@%s'", username, domain)
 			attr := &os.ProcAttr{
 				Sys: &syscall.SysProcAttr{
 					Token: syscall.Token(userToken),
@@ -227,7 +182,7 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 			theirWriter.Close()
 			theirEvents.Close()
 			if err != nil {
-				elog.Error(1, "Unable to start manager UI process: "+err.Error())
+				log.Printf("Unable to start manager UI process: %v", err)
 				return
 			}
 
@@ -284,7 +239,7 @@ loop:
 				}
 				sessionNotification := (*wtsSessionNotification)(unsafe.Pointer(c.EventData))
 				if uintptr(sessionNotification.size) != unsafe.Sizeof(*sessionNotification) {
-					elog.Error(1, "Unexpected size of WTSSESSION_NOTIFICATION: "+strconv.Itoa(int(sessionNotification.size)))
+					log.Printf("Unexpected size of WTSSESSION_NOTIFICATION: %d", sessionNotification.size)
 					continue
 				}
 				if c.EventType == wtsSessionLogoff {
@@ -302,7 +257,7 @@ loop:
 				}
 
 			default:
-				elog.Info(1, fmt.Sprintf("Unexpected service control request #%d\n", c))
+				log.Printf("Unexpected service control request #%d", c)
 			}
 		}
 	}
@@ -316,7 +271,7 @@ loop:
 	if uninstall {
 		err = UninstallManager()
 		if err != nil {
-			elog.Error(1, "Unable to uninstaller manager when quitting: "+err.Error())
+			log.Printf("Unable to uninstaller manager when quitting: %v", err)
 		}
 	}
 	return

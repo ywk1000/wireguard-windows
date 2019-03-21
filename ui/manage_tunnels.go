@@ -89,7 +89,7 @@ func NewManageTunnelsWindow(icon *walk.Icon) (*ManageTunnelsWindow, error) {
 
 func (mtw *ManageTunnelsWindow) setup() error {
 	mtw.SetIcon(mtw.icon)
-	mtw.SetSize(walk.Size{900, 800})
+	mtw.SetSize(walk.Size{900, 1400})
 	// TODO: Use a HSplitter to allow resizing
 	mtw.SetLayout(walk.NewHBoxLayout())
 	mtw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
@@ -163,6 +163,17 @@ func (mtw *ManageTunnelsWindow) setup() error {
 			mtw.updateConfView()
 		}
 	}()
+
+	logfile, err := service.IPCClientLogFilePath()
+	var logger *ringlogger.Ringlogger
+	if err == nil {
+		logger, err = ringlogger.NewRinglogger(logfile, "GUI")
+	}
+	if err != nil {
+		walk.MsgBox(nil, "Unable to initialize logging", fmt.Sprintf("%v\n\nFile: %s", err, logfile), walk.MsgBoxIconError)
+		return
+	}
+	NewLogView(currentTunnelContainer, logger)
 
 	controlsContainer, _ := walk.NewComposite(currentTunnelContainer)
 	controlsContainer.SetLayout(walk.NewHBoxLayout())

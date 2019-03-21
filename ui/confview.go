@@ -85,17 +85,19 @@ func newLabelTextLine(fieldName string, parent walk.Container) *labelTextLine {
 }
 
 func newInterfaceView(parent walk.Container) *interfaceView {
-	return &interfaceView{
+	iv := &interfaceView{
 		newLabelTextLine("Public key", parent),
 		newLabelTextLine("Listen port", parent),
 		newLabelTextLine("MTU", parent),
 		newLabelTextLine("Addresses", parent),
-		newLabelTextLine("DNS", parent),
+		newLabelTextLine("DNS servers", parent),
 	}
+	layoutInGrid(iv, parent.Layout().(*walk.GridLayout))
+	return iv
 }
 
 func newPeerView(parent walk.Container) *peerView {
-	return &peerView{
+	pv := &peerView{
 		newLabelTextLine("Public key", parent),
 		newLabelTextLine("Preshared key", parent),
 		newLabelTextLine("Allowed IPs", parent),
@@ -104,7 +106,8 @@ func newPeerView(parent walk.Container) *peerView {
 		newLabelTextLine("Latest handshake", parent),
 		newLabelTextLine("Transfer", parent),
 	}
-
+	layoutInGrid(pv, parent.Layout().(*walk.GridLayout))
+	return pv
 }
 
 func layoutInGrid(view interface{}, layout *walk.GridLayout) {
@@ -265,13 +268,13 @@ func (cv *ConfView) setConfiguration(c *conf.Config) {
 	defer func() {
 		if hasSuspended {
 			cv.SetSuspended(false)
+			cv.SendMessage(win.WM_SIZING, 0, 0) //TODO: FILTHY HACK! And doesn't work when items disappear.
 		}
 	}()
 	title := "Interface: " + c.Name
 	if cv.name.Title() != title {
 		cv.name.SetTitle(title)
 	}
-	layoutInGrid(cv.interfaze, cv.name.Layout().(*walk.GridLayout))
 	cv.interfaze.apply(&c.Interface)
 	inverse := make(map[*peerView]bool, len(cv.peers))
 	for _, pv := range cv.peers {
@@ -288,7 +291,6 @@ func (cv *ConfView) setConfiguration(c *conf.Config) {
 			group, _ := newPaddedGroupGrid(cv)
 			group.SetTitle("Peer")
 			pv := newPeerView(group)
-			layoutInGrid(pv, group.Layout().(*walk.GridLayout))
 			pv.apply(&peer)
 			cv.peers[peer.PublicKey] = pv
 		}
