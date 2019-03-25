@@ -7,14 +7,15 @@ package ui
 
 import (
 	"fmt"
-	"github.com/lxn/walk"
-	"github.com/lxn/win"
-	"golang.org/x/sys/windows"
-	"golang.zx2c4.com/wireguard/windows/conf"
 	"reflect"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"github.com/lxn/walk"
+	"github.com/lxn/win"
+	"golang.org/x/sys/windows"
+	"golang.zx2c4.com/wireguard/windows/conf"
 )
 
 type labelTextLine struct {
@@ -214,7 +215,7 @@ func newPaddedGroupGrid(parent walk.Container) (group *walk.GroupBox, err error)
 	if err != nil {
 		return nil, err
 	}
-	spacer, err := walk.NewHSpacerFixed(group, 10)
+	spacer, err := walk.NewSpacerWithCfg(group, &walk.SpacerCfg{walk.GrowableHorz | walk.GreedyHorz, walk.Size{10, 0}, false})
 	if err != nil {
 		return nil, err
 	}
