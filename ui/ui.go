@@ -7,14 +7,15 @@ package ui
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/lxn/walk"
 	"github.com/lxn/win"
 	"golang.zx2c4.com/wireguard/windows/conf"
 	"golang.zx2c4.com/wireguard/windows/ringlogger"
 	"golang.zx2c4.com/wireguard/windows/service"
 	"golang.zx2c4.com/wireguard/windows/ui/syntax"
-	"os"
-	"time"
 )
 
 const demoConfig = `[Interface]
@@ -194,11 +195,7 @@ func RunUI() {
 	quitAction.SetText("Exit")
 	quit = func() {
 		tray.Dispose()
-		_, err := service.IPCClientQuit(true)
-		if err != nil {
-			walk.MsgBox(nil, "Error Exiting WireGuard", fmt.Sprintf("Unable to exit service due to: %s. You may want to stop WireGuard from the service manager.", err), walk.MsgBoxIconError)
-			os.Exit(1)
-		}
+		onQuit()
 	}
 	quitAction.Triggered().Attach(quit)
 	tray.ContextMenu().Actions().Add(quitAction)
@@ -291,4 +288,12 @@ func RunUI() {
 	time.AfterFunc(time.Minute*15, nag)
 
 	mw.Run()
+}
+
+func onQuit() {
+	_, err := service.IPCClientQuit(true)
+	if err != nil {
+		walk.MsgBox(nil, "Error Exiting WireGuard", fmt.Sprintf("Unable to exit service due to: %s. You may want to stop WireGuard from the service manager.", err), walk.MsgBoxIconError)
+		os.Exit(1)
+	}
 }
