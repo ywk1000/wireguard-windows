@@ -147,13 +147,12 @@ func (mtw *ManageTunnelsWindow) Run() int {
 
 func (mtw *ManageTunnelsWindow) Show() {
 	mtw.MainWindow.Show()
-	// TODO: Upstream has VisibleChanged()
+	// TODO: Upstream lxn/walk has VisibleChanged()
 	mtw.updateConfView()
 	win.SetForegroundWindow(mtw.Handle())
 	win.BringWindowToTop(mtw.Handle())
 }
 
-// TODO: Call immediately on visible main window
 func (mtw *ManageTunnelsWindow) updateConfView() {
 	if !mtw.Visible() {
 		return
