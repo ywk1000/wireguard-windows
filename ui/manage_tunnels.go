@@ -46,7 +46,6 @@ func NewManageTunnelsWindow(icon *walk.Icon) (*ManageTunnelsWindow, error) {
 func (mtw *ManageTunnelsWindow) setup() error {
 	mtw.SetIcon(mtw.icon)
 	mtw.SetSize(walk.Size{900, 600})
-	// TODO: Use a HSplitter to allow resizing
 	mtw.SetLayout(walk.NewHBoxLayout())
 	mtw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
 		// "Close to tray" instead of exiting application
@@ -55,7 +54,9 @@ func (mtw *ManageTunnelsWindow) setup() error {
 		onQuit()
 	})
 
-	listBoxContainer, _ := walk.NewComposite(mtw)
+	splitter, _ := walk.NewHSplitter(mtw)
+
+	listBoxContainer, _ := walk.NewComposite(splitter)
 	listBoxContainer.SetLayout(walk.NewVBoxLayout())
 
 	// Left side of main window: listbox, controls
@@ -102,7 +103,7 @@ func (mtw *ManageTunnelsWindow) setup() error {
 
 	// Right side of main window: currently selected tunnel, edit
 
-	currentTunnelContainer, _ := walk.NewComposite(mtw)
+	currentTunnelContainer, _ := walk.NewComposite(splitter)
 	currentTunnelContainer.SetLayout(walk.NewVBoxLayout())
 
 	mtw.confView, _ = NewConfView(currentTunnelContainer)
