@@ -20,15 +20,13 @@ import (
 
 const testInterfaceName = "test"
 
-const demoConfig = `[Interface]
-PrivateKey = 6KpcbNFK4tKBciKBT2Rj6Z/sHBqxdV+p+nuNA5AlWGI=
-Address = 192.168.4.84/24
-DNS = 8.8.8.8, 8.8.4.4, 1.1.1.1, 1.0.0.1
+const demoConfig = `
+#
+# Paste your configuration here
+#
 
-[Peer]
-PublicKey = JRI8Xc0zKP9kXk8qP84NdUQA04h6DLfFbwJn4g+/PFs=
-Endpoint = demo.wireguard.com:12912
-AllowedIPs = 0.0.0.0/0
+[Interface]
+PrivateKey = ...
 `
 
 const nagMessage = `It looks like you're still using this WireGuard pre-alpha build. Great!
@@ -154,7 +152,7 @@ func RunUI() {
 		mw.SetSuspended(true)
 		pb.SetEnabled(false)
 		se.SetEnabled(false)
-		pb.SetText("Requesting..")
+		pb.SetText("Requesting...")
 		mw.SetSuspended(false)
 		if runningTunnel != nil {
 			err := runningTunnel.Stop()
